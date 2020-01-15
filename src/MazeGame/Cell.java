@@ -7,6 +7,15 @@ public class Cell {
     Boolean boarder = false;
     private Creature occupiedCreature = null;
     private Weapon fallenWeapon = null;
+    private Intractable intractable = null;
+
+    public Intractable getIntractable() {
+        return intractable;
+    }
+
+    public void setIntractable(Intractable intractable) {
+        this.intractable = intractable;
+    }
 
     public void setBoarder(Boolean boarder) {
         this.boarder = boarder;

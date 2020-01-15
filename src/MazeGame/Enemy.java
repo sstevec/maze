@@ -47,7 +47,7 @@ public class Enemy extends Creature{
 
     }
 
-    public Bullet move(){
+    public ArrayList<Bullet> move(){
         lostTarget = false;
 
         cellInfo[(int)iPos][(int)jPos].setOccupiedCreature(null);

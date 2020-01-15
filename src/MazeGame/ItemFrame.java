@@ -1,8 +1,13 @@
 package MazeGame;
 
 import javax.swing.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class ItemFrame {
+
+    private boolean visible = false;
+
     private Player player;
     private JFrame jFrame;
     private JLabel nameTag;
@@ -54,9 +59,18 @@ public class ItemFrame {
         jFrame.getContentPane().add(weaponFireRateTag);
 
         initFrame();
+
+        jFrame.addKeyListener(new KeyAdapter() {
+            public void keyPressed(KeyEvent e) {
+                char charA = e.getKeyChar();
+                if (charA == 'q') {
+                    show();
+                }
+            }
+        });
     }
 
-    public void initFrame(){
+    private void initFrame(){
         weapon = player.getWeapon();
 
         nameTag.setText(player.getName());
@@ -67,6 +81,12 @@ public class ItemFrame {
     }
 
     public void show(){
-        jFrame.setVisible(true);
+        if(!visible) {
+            visible = true;
+            initFrame();
+        }else{
+            visible = false;
+        }
+        jFrame.setVisible(visible);
     }
 }

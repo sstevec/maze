@@ -66,6 +66,9 @@ public class Graphic extends JPanel {
                 if(totalMap[startX+i][startY+j].boarder){
                     graphics.setColor(Color.BLACK);
                     graphics.fillRect(j*15,i*15,15,15);
+                }else if(totalMap[startX+i][startY+j].getIntractable() != null){
+                    graphics.setColor(totalMap[startX+i][startY+j].getIntractable().getColor());
+                    graphics.fillRect(j*15,i*15,15,15);
                 }else{
                     graphics.setColor(Color.WHITE);
                     graphics.fillRect(j*15,i*15,15,15);
@@ -85,7 +88,7 @@ public class Graphic extends JPanel {
         for (Bullet temp: bullets
              ) {
             graphics.setColor(temp.getColor());
-            graphics.fillArc((int)temp.getX()-(startY*15),(int)temp.getY()-(startX*15),10,10,0,360);
+            graphics.fillArc((int)Math.round(temp.getX()-(startY*15)),(int)Math.round(temp.getY()-(startX*15)),10,10,0,360);
         }
 
         graphics.setColor(Color.MAGENTA);

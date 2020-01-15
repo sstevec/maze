@@ -4,6 +4,7 @@ import MazeGame.weapons.Gun;
 import MazeGame.weapons.NoWeapon;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -37,7 +38,7 @@ public class Player extends Creature {
         this.rooms = rooms;
     }
 
-    public Bullet fire(int xDest, int yDest) {
+    public ArrayList<Bullet> fire(int xDest, int yDest) {
         int yBorder = x - 27 > 0 ? x - 27 : 0;
         int xBorder = y - 40 > 0 ? y - 40 : 0;
         return weapon.CheckFireStatus(y * 15 + 1, x * 15 + 1, xDest + xBorder * 15 - 10, yDest + yBorder * 15 - 35);
@@ -84,7 +85,7 @@ public class Player extends Creature {
                 roomI = tempI;
                 roomJ = tempJ;
                 rooms[tempI][tempJ].visit(this);
-            }else{
+            } else {
                 roomI = tempI;
                 roomJ = tempJ;
             }
@@ -101,7 +102,7 @@ public class Player extends Creature {
     }
 
     @Override
-    public void die(){
+    public void die() {
 
     }
 
@@ -121,15 +122,15 @@ public class Player extends Creature {
         this.name = name;
     }
 
-    public Weapon getWeapon(){
+    public Weapon getWeapon() {
         return weapon;
     }
 
-    public void pick(){
-        if(totalMap[x][y].getFallenWeapon() != null) {
+    public void pick() {
+        if (totalMap[x][y].getFallenWeapon() != null) {
             Weapon tempWeapon = null;
             if (weapon.getDamage() != 0) {
-                 // means player equipped with a weapon
+                // means player equipped with a weapon
                 tempWeapon = weapon;
             }
             weapon = totalMap[x][y].getFallenWeapon();
@@ -137,13 +138,20 @@ public class Player extends Creature {
         }
     }
 
-    public void drop(){
+    public void drop() {
         if (weapon.getDamage() != 0) {
             // means player equipped with a weapon
-            if(totalMap[x][y].getFallenWeapon() == null){
+            if (totalMap[x][y].getFallenWeapon() == null) {
                 totalMap[x][y].setFallenWeapon(weapon);
                 weapon = new NoWeapon(Color.CYAN, getTeamNumber());
             }
         }
+    }
+
+    public void teleport(int x, int y) {
+        this.x = x;
+        this.y = y;
+        roomI = x / roomSize;
+        roomJ = y / roomSize;
     }
 }

@@ -79,6 +79,7 @@ public class MazeGenerator {
             }
         }
         rememberRooms();
+        setProtal();
     }
 
     private void rememberRooms() {
@@ -295,6 +296,10 @@ public class MazeGenerator {
         } else {
             return new Room();
         }
+    }
+
+    private void setProtal(){
+        rooms[mapSize-1][mapSize-1].setPortal();
     }
 
     public Cell[][] getTotalMap() {

@@ -23,7 +23,7 @@ public abstract class Weapon {
         this.belongTeam = belongTeam;
     }
 
-    public Bullet CheckFireStatus(int xPos, int yPos, int xDest, int yDest){
+    public ArrayList<Bullet> CheckFireStatus(int xPos, int yPos, int xDest, int yDest){
         if(allowFire){
             allowFire = false;
             Timer timer = new Timer();
@@ -38,7 +38,7 @@ public abstract class Weapon {
         return null;
     }
 
-    protected abstract Bullet fire(int x, int y, int xDest, int yDest);
+    protected abstract ArrayList<Bullet> fire(int x, int y, int xDest, int yDest);
 
     public String getName() {
         return name;

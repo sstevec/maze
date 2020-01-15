@@ -5,6 +5,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -19,6 +20,7 @@ public class GameInitializer{
     private ItemFrame itemFrame;
     private Player player;
     private Graphic graphic;
+    private GameInitializer gameInitializer = this;
 
     private Cell[][] totalMap;
     private Room[][] rooms;
@@ -73,13 +75,16 @@ public class GameInitializer{
                 } else if (charA == 'd') {
                     player.move("right");
                     graphic.draw(player.getX(), player.getY());
-                }else if (charA == 'e') {
-                    itemFrame.initFrame();
+                }else if (charA == 'q') {
                     itemFrame.show();
                 }else if (charA == 'f') {
                     player.pick();
                 }else if (charA == 'g') {
                     player.drop();
+                }else if (charA == 'e') {
+                    if(totalMap[player.getX()][player.getY()].getIntractable() != null){
+                        totalMap[player.getX()][player.getY()].getIntractable().interact(gameInitializer);
+                    }
                 }
             }
         });
@@ -88,9 +93,9 @@ public class GameInitializer{
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == 1) {
                     // left button pressed
-                    Bullet temp = player.fire(e.getX(), e.getY());
+                    ArrayList<Bullet> temp = player.fire(e.getX(), e.getY());
                     if (temp != null) {
-                        bullets.add(temp);
+                        bullets.addAll(temp);
                     }
                 }
             }
@@ -150,7 +155,7 @@ public class GameInitializer{
 
                 graphic.drawElements();
             }
-        }, 0, 1000 / 60);
+        }, 0, 1000 / 40);
 
         // keep the enemy moving
         enemyDriver.schedule(new TimerTask() {
@@ -159,13 +164,21 @@ public class GameInitializer{
                 // make the enemy move
                 for (Enemy temp : enemies
                 ) {
-                    Bullet tempBullet = temp.move();
+                    ArrayList<Bullet> tempBullet = temp.move();
                     if (tempBullet != null) {
-                        bullets.add(tempBullet);
+                        bullets.addAll(tempBullet);
                     }
                 }
             }
         }, 0, 1000 / 2);
 
+    }
+
+    public void regenerate(){
+        mazeGenerator.generateRooms();
+        player.teleport(1,1);
+        enemies.clear();
+        bullets.clear();
+        graphic.draw(1,1);
     }
 }

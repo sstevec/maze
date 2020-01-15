@@ -4,6 +4,7 @@ import MazeGame.Bullet;
 import MazeGame.Weapon;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 public class NoWeapon extends Weapon {
 
@@ -12,7 +13,7 @@ public class NoWeapon extends Weapon {
     }
 
     @Override
-    protected Bullet fire(int x, int y, int xDest, int yDest){
+    protected ArrayList<Bullet> fire(int x, int y, int xDest, int yDest){
         return null;
     }
 }

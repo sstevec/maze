@@ -1,5 +1,7 @@
 package MazeGame;
 
+import MazeGame.Interactions.Portal;
+
 import java.util.Random;
 
 import static MazeGame.Info.roomSize;
@@ -21,6 +23,15 @@ public class Room {
         if(!visited){
             visited = true;
             player.sumEnemy(enemyNumber);
+        }
+    }
+
+    public void setPortal(){
+        int startCor = (roomSize-3)/2;
+        for(int i = 0; i<3; i++){
+            for(int j = 0; j<3; j++){
+                cells[i+startCor][j+startCor].setIntractable(new Portal());
+            }
         }
     }
 
