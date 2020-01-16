@@ -30,6 +30,9 @@ public class GameInitializer{
     private CopyOnWriteArrayList<Enemy> enemies = new CopyOnWriteArrayList<>();
     private Timer enemyDriver = new Timer();
 
+    private Timer playerDriver = new Timer();
+    private boolean U = false, D = false, L = false, R = false;
+
     GameInitializer(int mapSize) {
         this.mapSize = mapSize;
         mazeGenerator = new MazeGenerator(mapSize);
@@ -60,21 +63,19 @@ public class GameInitializer{
     }
 
     private void startGame() {
+
+
         jFrame.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
                 char charA = e.getKeyChar();
                 if (charA == 'w') {
-                    player.move("up");
-                    graphic.draw(player.getX(), player.getY());
+                    U = true;
                 } else if (charA == 'a') {
-                    player.move("left");
-                    graphic.draw(player.getX(), player.getY());
+                    L = true;
                 } else if (charA == 's') {
-                    player.move("down");
-                    graphic.draw(player.getX(), player.getY());
+                    D = true;
                 } else if (charA == 'd') {
-                    player.move("right");
-                    graphic.draw(player.getX(), player.getY());
+                    R = true;
                 }else if (charA == 'q') {
                     itemFrame.show();
                 }else if (charA == 'f') {
@@ -87,7 +88,44 @@ public class GameInitializer{
                     }
                 }
             }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                // TODO 自动生成的方法存根
+                switch (e.getKeyCode()) {
+                    case KeyEvent.VK_A:
+                        L=false;
+                        break;
+                    case KeyEvent.VK_D:
+                        R=false;
+                        break;
+                    case KeyEvent.VK_W:
+                        U=false;
+                        break;
+                    case KeyEvent.VK_S:
+                        D=false;
+                        break;
+                }
+            }
         });
+
+        playerDriver.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if(U){
+                    player.move("up");
+                }
+                if(D){
+                    player.move("down");
+                }
+                if(L){
+                    player.move("left");
+                }if(R){
+                    player.move("right");
+                }
+                graphic.draw(player.getX(), player.getY());
+            }
+        },0,1000/35);
 
         jFrame.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
@@ -176,7 +214,7 @@ public class GameInitializer{
                     }
                 }
             }
-        }, 0, 1000 / 2);
+        }, 0, 1000 / 4);
 
     }
 

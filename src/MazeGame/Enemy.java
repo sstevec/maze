@@ -6,6 +6,7 @@ import MazeGame.weapons.BrokenGun;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static MazeGame.Info.*;
 
@@ -25,7 +26,7 @@ public class Enemy extends Creature {
 
     private Room[][] roomInfo; // a reference of room info
     private Cell[][] cellInfo; // a reference of cell info
-    private HashMap<String, Integer> movePriorityList;
+    private ConcurrentHashMap<String, Integer> movePriorityList;
 
     private int mapSize;
 
@@ -33,7 +34,7 @@ public class Enemy extends Creature {
 
     private ArrayList<Coordinate> moveQueue = new ArrayList<>();
 
-    public Enemy(int iPos, int jPos, Player player, Room[][] rooms, Cell[][] cells, HashMap<String, Integer> movePriorityList) {
+    public Enemy(int iPos, int jPos, Player player, Room[][] rooms, Cell[][] cells, ConcurrentHashMap<String, Integer> movePriorityList) {
         // in future you should move these property to child class
         super(100, 100, 0);
 
@@ -61,7 +62,6 @@ public class Enemy extends Creature {
                 cellInfo[(int) iPos][(int) jPos].setOccupiedCreature(null);
                 return fireWhileMoving();
             } else {
-                System.out.println("lost target no move");
                 getNewMoveQueue();
                 return null;
             }

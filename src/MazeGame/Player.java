@@ -5,8 +5,8 @@ import MazeGame.weapons.NoWeapon;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static MazeGame.Info.roomSize;
@@ -29,7 +29,7 @@ public class Player extends Creature {
     private Weapon weapon;
     private CopyOnWriteArrayList<Enemy> enemies;
     private Random random = new Random();
-    private HashMap<String,Integer> movePriorityList = new HashMap<>();
+    private ConcurrentHashMap<String,Integer> movePriorityList = new ConcurrentHashMap<>();
 
     Player(int totalMapSize, int x, int y, Cell[][] totalMap, Room[][] rooms, CopyOnWriteArrayList<Enemy> enemies) {
         super(100, 100, 1);
