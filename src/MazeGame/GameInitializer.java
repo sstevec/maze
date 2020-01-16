@@ -97,6 +97,12 @@ public class GameInitializer{
                     if (temp != null) {
                         bullets.addAll(temp);
                     }
+                } else if (e.getButton() == 3) {
+                    // left button pressed
+                    ArrayList<Bullet> temp = player.castAbility(e.getX(), e.getY());
+                    if (temp != null) {
+                        bullets.addAll(temp);
+                    }
                 }
             }
         });

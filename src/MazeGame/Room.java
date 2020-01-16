@@ -72,4 +72,5 @@ public class Room {
     public Cell[][] getCells() {
         return cells;
     }
+
 }

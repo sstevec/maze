@@ -5,10 +5,12 @@ import MazeGame.weapons.NoWeapon;
 
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static MazeGame.Info.roomSize;
+import static MazeGame.Info.traceRange;
 
 public class Player extends Creature {
 
@@ -20,12 +22,14 @@ public class Player extends Creature {
 
     private String name = "Player 1";
 
+    private int mapSize;
     private int totalMapSize;
     private Cell[][] totalMap;
     private Room[][] rooms;
     private Weapon weapon;
     private CopyOnWriteArrayList<Enemy> enemies;
     private Random random = new Random();
+    private HashMap<String,Integer> movePriorityList = new HashMap<>();
 
     Player(int totalMapSize, int x, int y, Cell[][] totalMap, Room[][] rooms, CopyOnWriteArrayList<Enemy> enemies) {
         super(100, 100, 1);
@@ -36,12 +40,19 @@ public class Player extends Creature {
         weapon = new Gun(Color.CYAN, getTeamNumber());
         this.enemies = enemies;
         this.rooms = rooms;
+        this.mapSize = rooms.length;
     }
 
     public ArrayList<Bullet> fire(int xDest, int yDest) {
         int yBorder = x - 27 > 0 ? x - 27 : 0;
         int xBorder = y - 40 > 0 ? y - 40 : 0;
         return weapon.CheckFireStatus(y * 15 + 1, x * 15 + 1, xDest + xBorder * 15 - 10, yDest + yBorder * 15 - 35);
+    }
+
+    public ArrayList<Bullet> castAbility(int xDest, int yDest) {
+        int yBorder = x - 27 > 0 ? x - 27 : 0;
+        int xBorder = y - 40 > 0 ? y - 40 : 0;
+        return weapon.CheckAbilityStatus(y * 15 + 1, x * 15 + 1, xDest + xBorder * 15 - 10, yDest + yBorder * 15 - 35);
     }
 
     public void move(String dir) {
@@ -85,6 +96,8 @@ public class Player extends Creature {
                 roomI = tempI;
                 roomJ = tempJ;
                 rooms[tempI][tempJ].visit(this);
+                clearPriorityList();
+                setMovePriority(roomI, roomJ, traceRange, -1);
             } else {
                 roomI = tempI;
                 roomJ = tempJ;
@@ -97,7 +110,7 @@ public class Player extends Creature {
         for (int i = 0; i < number; i++) {
             int tempI = random.nextInt(roomSize - 5) + 2;
             int tempJ = random.nextInt(roomSize - 5) + 2;
-            enemies.add(new Enemy(roomI * roomSize + tempI, roomJ * roomSize + tempJ, this, rooms, totalMap));
+            enemies.add(new Enemy(roomI * roomSize + tempI, roomJ * roomSize + tempJ, this, rooms, totalMap,movePriorityList));
         }
     }
 
@@ -153,5 +166,62 @@ public class Player extends Creature {
         this.y = y;
         roomI = x / roomSize;
         roomJ = y / roomSize;
+    }
+
+    private void clearPriorityList() {
+        movePriorityList.clear();
+    }
+
+    private void setMovePriority(int i, int j, int priorityNumber, int comeDir) {
+        if (priorityNumber == 0) {
+            return;
+        } else {
+            if(movePriorityList.get(i+","+j) == null || movePriorityList.get(i+","+j) < priorityNumber) {
+                movePriorityList.put(i + "," + j, priorityNumber);
+            }
+
+            for (int k = 0; k < 4; k++) {
+                if (k == comeDir) {
+                    continue;
+                }
+                if (k == 0) {
+                    // check top
+                    if (rooms[i][j].getOpenTop() && i - 1 >= 0 && rooms[i - 1][j].getOpenBot()) {
+                        // can go to top room
+                        setMovePriority(i - 1, j, priorityNumber - 1, 2);
+                    } else {
+                        continue;
+                    }
+                }
+
+                if (k == 1) {
+                    // check right
+                    if (rooms[i][j].getOpenRight() && j + 1 < mapSize && rooms[i][j + 1].getOpenLeft()) {
+                        // can go to right room
+                        setMovePriority(i, j + 1, priorityNumber - 1, 3);
+                    } else {
+                        continue;
+                    }
+                }
+
+                if (k == 2) {
+                    // check bot
+                    if (rooms[i][j].getOpenBot() && i + 1 < mapSize && rooms[i + 1][j].getOpenTop()) {
+                        // can go to bot room
+                        setMovePriority(i + 1, j, priorityNumber - 1, 0);
+                    } else {
+                        continue;
+                    }
+                }
+
+                if (k == 3) {
+                    // check left
+                    if (rooms[i][j].getOpenLeft() && j - 1 >= 0 && rooms[i][j - 1].getOpenRight()) {
+                        // can go to left room
+                        setMovePriority(i, j - 1, priorityNumber - 1, 1);
+                    }
+                }
+            }
+        }
     }
 }
