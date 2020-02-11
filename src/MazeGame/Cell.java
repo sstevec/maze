@@ -1,10 +1,12 @@
 package MazeGame;
 
+import MazeGame.weapons.Weapon;
+
 public class Cell {
 
     private int x; // row number
     private int y; // column number
-    Boolean boarder = false;
+    private boolean boarder = false;
     private Creature occupiedCreature = null;
     private Weapon fallenWeapon = null;
     private Intractable intractable = null;
@@ -17,8 +19,12 @@ public class Cell {
         this.intractable = intractable;
     }
 
-    public void setBoarder(Boolean boarder) {
+    public void setBoarder(boolean boarder) {
         this.boarder = boarder;
+    }
+
+    public boolean isBoarder() {
+        return boarder;
     }
 
     public int getX() {

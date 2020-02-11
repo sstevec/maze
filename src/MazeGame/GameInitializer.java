@@ -1,18 +1,16 @@
 package MazeGame;
 
+import MazeGame.effect.Effect;
+
 import javax.swing.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
+import java.awt.event.*;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static MazeGame.Info.*;
+import static MazeGame.Info.roomSize;
 
-public class GameInitializer{
+public class GameInitializer {
 
     private int mapSize = 10;
     private JFrame jFrame;
@@ -20,18 +18,29 @@ public class GameInitializer{
     private ItemFrame itemFrame;
     private Player player;
     private Graphic graphic;
+
     private GameInitializer gameInitializer = this;
+
+    private AbilityCDGraphic abilityCDGraphic;
+    private Timer cdTimer = new Timer();
 
     private Cell[][] totalMap;
     private Room[][] rooms;
-    private CopyOnWriteArrayList<Bullet> bullets = new CopyOnWriteArrayList<>();
-    private Timer bulletDriver = new Timer();
+
+    private Timer graphicDriver = new Timer();
 
     private CopyOnWriteArrayList<Enemy> enemies = new CopyOnWriteArrayList<>();
     private Timer enemyDriver = new Timer();
 
+    private CopyOnWriteArrayList<Effect> effects = new CopyOnWriteArrayList<>();
+    private Timer effectDriver = new Timer();
+
     private Timer playerDriver = new Timer();
     private boolean U = false, D = false, L = false, R = false;
+
+    private Timer playerShootingDriver = new Timer();
+    private boolean openFire = false;
+    private int mouseX, mouseY;
 
     GameInitializer(int mapSize) {
         this.mapSize = mapSize;
@@ -42,8 +51,9 @@ public class GameInitializer{
         rooms = mazeGenerator.getRooms();
 
         // init map variables
-        player = new Player(mapSize * roomSize, 1, 1, totalMap,rooms, enemies);
-        graphic = new Graphic(totalMap, player,bullets,enemies);
+        player = new Player(mapSize * roomSize, 1, 1, totalMap, rooms, enemies, effects);
+        graphic = new Graphic(totalMap, player, enemies, effects);
+        abilityCDGraphic = new AbilityCDGraphic(player);
 
         itemFrame = new ItemFrame(player);
     }
@@ -54,16 +64,22 @@ public class GameInitializer{
         // 10 margin, and 20 cells on each side
         jFrame.setBounds(300, 100, 1215, 825);
         jFrame.setVisible(true);
+        jFrame.setLayout(null);
+        jFrame.setResizable(false);
         jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         // add elements to frame
-        jFrame.add(graphic);
-        graphic.draw(1, 1);
+        JLayeredPane jLayeredPane = new JLayeredPane();
+        jLayeredPane.add(graphic, new Integer(100));
+        jLayeredPane.add(abilityCDGraphic, new Integer(200));
+        jLayeredPane.setBounds(0, 0, 1215, 825);
+        jFrame.add(jLayeredPane);
+
+        graphic.drawElements();
         startGame();
     }
 
     private void startGame() {
-
 
         jFrame.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
@@ -76,14 +92,18 @@ public class GameInitializer{
                     D = true;
                 } else if (charA == 'd') {
                     R = true;
-                }else if (charA == 'q') {
+                } else if (charA == 'q') {
+                    U = false;
+                    R = false;
+                    D = false;
+                    L = false;
                     itemFrame.show();
-                }else if (charA == 'f') {
+                } else if (charA == 'f') {
                     player.pick();
-                }else if (charA == 'g') {
+                } else if (charA == 'g') {
                     player.drop();
-                }else if (charA == 'e') {
-                    if(totalMap[player.getX()][player.getY()].getIntractable() != null){
+                } else if (charA == 'e') {
+                    if (totalMap[player.getX()][player.getY()].getIntractable() != null) {
                         totalMap[player.getX()][player.getY()].getIntractable().interact(gameInitializer);
                     }
                 }
@@ -91,138 +111,145 @@ public class GameInitializer{
 
             @Override
             public void keyReleased(KeyEvent e) {
-                // TODO 自动生成的方法存根
                 switch (e.getKeyCode()) {
                     case KeyEvent.VK_A:
-                        L=false;
+                        L = false;
                         break;
                     case KeyEvent.VK_D:
-                        R=false;
+                        R = false;
                         break;
                     case KeyEvent.VK_W:
-                        U=false;
+                        U = false;
                         break;
                     case KeyEvent.VK_S:
-                        D=false;
+                        D = false;
                         break;
                 }
             }
         });
-
-        playerDriver.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if(U){
-                    player.move("up");
-                }
-                if(D){
-                    player.move("down");
-                }
-                if(L){
-                    player.move("left");
-                }if(R){
-                    player.move("right");
-                }
-                graphic.draw(player.getX(), player.getY());
-            }
-        },0,1000/35);
 
         jFrame.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == 1) {
                     // left button pressed
-                    ArrayList<Bullet> temp = player.fire(e.getX(), e.getY());
-                    if (temp != null) {
-                        bullets.addAll(temp);
-                    }
+                    openFire = true;
+                    mouseX = e.getX();
+                    mouseY = e.getY();
                 } else if (e.getButton() == 3) {
-                    // left button pressed
-                    ArrayList<Bullet> temp = player.castAbility(e.getX(), e.getY());
-                    if (temp != null) {
-                        bullets.addAll(temp);
-                    }
+                    // right button pressed
+                    player.castAbility(e.getX(), e.getY());
                 }
+            }
+
+            public void mouseReleased(MouseEvent e) {
+                if (e.getButton() == 1) {
+                    // left button pressed
+                    openFire = false;
+                }
+            }
+
+        });
+
+        jFrame.addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent e) {
+                mouseX = e.getX();
+                mouseY = e.getY();
             }
         });
 
-        // keep update bullet location
-        bulletDriver.schedule(new TimerTask() {
+
+        // all drivers from here
+
+        playerDriver.schedule(new TimerTask() {
             @Override
             public void run() {
-                // let bullet fly
-                for (Bullet temp : bullets
-                ) {
-                    temp.fly();
+                if (U) {
+                    player.move("up");
                 }
-
-                // after flying, check if it reach the bound
-                int bulletSize = bullets.size();
-                for (int i = 0; i<bulletSize; i++) {
-                    Bullet temp = bullets.get(i);
-                    int j1 = (int) (temp.getX() + 5) / 15;
-                    int i1 = (int) (temp.getY() + 5) / 15;
-                    int j2 = (int) temp.getX() / 15;
-                    int i2 = (int) temp.getY() / 15;
-                    if (totalMap[i1][j1].boarder || totalMap[i2][j2].boarder) {
-                        bullets.remove(i);
-                        i--;
-                        bulletSize--;
-                    }
-                    if (totalMap[i1][j1].getOccupiedCreature() != null) {
-                        if (totalMap[i1][j1].getOccupiedCreature().getTeamNumber() != temp.getBelongTeam()) {
-                            totalMap[i1][j1].getOccupiedCreature().takeDamage(temp.getDamage());
-                            bullets.remove(i);
-                            i--;
-                            bulletSize--;
-                            continue;
-                        }
-                    }
-                    if (totalMap[i2][j2].getOccupiedCreature() != null) {
-                        if (totalMap[i2][j2].getOccupiedCreature().getTeamNumber() != temp.getBelongTeam()) {
-                            totalMap[i2][j2].getOccupiedCreature().takeDamage(temp.getDamage());
-                            bullets.remove(i);
-                            i--;
-                            bulletSize--;
-                        }
-                    }
+                if (D) {
+                    player.move("down");
                 }
+                if (L) {
+                    player.move("left");
+                }
+                if (R) {
+                    player.move("right");
+                }
+            }
+        }, 0, 1000 / 35);
 
+        playerShootingDriver.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (openFire) {
+                    player.fire(mouseX, mouseY);
+                }
+            }
+        }, 0, 1000 / 20);
+
+
+        // keep checking enemy
+        enemyDriver.schedule(new TimerTask() {
+            @Override
+            public void run() {
                 int enemySize = enemies.size();
-                for (int i = 0 ; i<enemySize; i++) {
+                for (int i = 0; i < enemySize; i++) {
                     Enemy temp = enemies.get(i);
-                    if(temp.getCurrentHealth() <= 0){
+                    if (temp.getCurrentHealth() <= 0) {
                         enemies.remove(i);
                         i--;
                         enemySize--;
+                        temp.die();
                     }
                 }
+            }
+        }, 0, 1000 / 5);
 
+        effectDriver.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                int effectSize = effects.size();
+                for (int i = 0; i < effectSize; i++) {
+                    Effect temp = effects.get(i);
+                    if (!temp.isDealDamage()) {
+                        temp.doDamage(totalMap);
+                    } else {
+                        if (temp.disappear()) {
+                            effects.remove(i);
+                            i--;
+                            effectSize--;
+                        } else {
+                            temp.animate();
+                        }
+                    }
+                }
+            }
+        }, 0, 1000 / 30);
+
+        graphicDriver.schedule(new TimerTask() {
+            @Override
+            public void run() {
                 graphic.drawElements();
             }
         }, 0, 1000 / 40);
 
-        // keep the enemy moving
-        enemyDriver.schedule(new TimerTask() {
+        cdTimer.schedule(new TimerTask() {
             @Override
             public void run() {
-                // make the enemy move
-                for (Enemy temp : enemies
-                ) {
-                    ArrayList<Bullet> tempBullet = temp.move();
-                    if (tempBullet != null) {
-                        bullets.addAll(tempBullet);
-                    }
-                }
+                abilityCDGraphic.repaint();
             }
-        }, 0, 1000 / 4);
-
+        }, 0, 1000 / 10);
     }
 
-    public void regenerate(){
+    public void regenerate() {
         mazeGenerator.generateRooms();
-        player.teleport(1,1);
+        player.teleport(1, 1);
+        // clear all enemy
+        for (Enemy temp : enemies
+        ) {
+            temp.die();
+        }
         enemies.clear();
-        bullets.clear();
-        graphic.draw(1,1);
+        graphic.drawElements();
     }
 }

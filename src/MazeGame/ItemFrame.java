@@ -1,5 +1,7 @@
 package MazeGame;
 
+import MazeGame.weapons.Weapon;
+
 import javax.swing.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;

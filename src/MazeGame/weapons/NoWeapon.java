@@ -1,21 +1,23 @@
 package MazeGame.weapons;
 
-import MazeGame.Bullet;
-import MazeGame.Weapon;
+import MazeGame.bullets.Bullet;
+import MazeGame.bullets.NormalBullet;
+import MazeGame.effect.Effect;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class NoWeapon extends Weapon {
 
     Random random = new Random();
-    public NoWeapon(Color color, int belongTeam){
-        super("NoWeapon",0.001, 0, color,0, belongTeam,10);
+    public NoWeapon(Color color, int belongTeam, CopyOnWriteArrayList<Effect> effects){
+        super("NoWeapon",0.001, 0, color,0, belongTeam,10, effects);
     }
 
     @Override
-    protected ArrayList<Bullet> fire(int x, int y, int xDest, int yDest){
+    protected ArrayList<Bullet> fire(double x, double y, double xDest, double yDest){
         return null;
     }
 
@@ -29,7 +31,7 @@ public class NoWeapon extends Weapon {
         for(int i = 0; i<30; i++) {
             int tempX = random.nextInt(21)-10;
             int tempY = random.nextInt(21)-10;
-            bullets.add(new Bullet(x, y, xDir+tempX/10.0, yDir+tempY/10.0, 3, color, 1, belongTeam));
+            bullets.add(new NormalBullet(x, y, xDir+tempX/10.0, yDir+tempY/10.0, 3, color, 1, belongTeam, effects));
         }
         return bullets;
     }

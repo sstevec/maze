@@ -1,19 +1,24 @@
-package MazeGame;
+package MazeGame.bullets;
+
+import MazeGame.Creature;
+import MazeGame.effect.Effect;
 
 import java.awt.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Bullet {
+public abstract class Bullet {
 
-    private double x;
-    private double y;
+    protected double x;
+    protected double y;
     private double xDir;
     private double yDir;
     private int speed;
     private int damage;
     private Color color;
     private int belongTeam;
+    protected CopyOnWriteArrayList<Effect> effects;
 
-    public Bullet(int x, int y, double xDir, double yDir, int speed, Color color, int damage, int belongTeam){
+    public Bullet(double x, double y, double xDir, double yDir, int speed, Color color, int damage, int belongTeam, CopyOnWriteArrayList<Effect> effects){
         this.x = x;
         this.y = y;
         this.xDir = xDir;
@@ -22,12 +27,17 @@ public class Bullet {
         this.color = color;
         this.damage = damage;
         this.belongTeam = belongTeam;
+        this.effects = effects;
     }
 
     public void fly(){
         x = x + xDir*speed;
         y = y + yDir*speed;
     }
+
+    public abstract void hurt(Creature creature);
+
+    public abstract void dieEffect();
 
     public double getX() {
         return x;

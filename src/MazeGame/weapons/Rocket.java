@@ -1,6 +1,7 @@
 package MazeGame.weapons;
 
 import MazeGame.bullets.Bullet;
+import MazeGame.bullets.ExplosiveBullet;
 import MazeGame.bullets.NormalBullet;
 import MazeGame.effect.Effect;
 
@@ -8,10 +9,10 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class Gun extends Weapon {
+public class Rocket extends Weapon {
 
-    public Gun(Color color, int belongTeam, CopyOnWriteArrayList<Effect> effects){
-        super("Gun",5.0, 5, color,20, belongTeam,5, effects);
+    public Rocket(Color color, int belongTeam, CopyOnWriteArrayList<Effect> effects){
+        super("Rocket",0.5, 15, color,100, belongTeam,5, effects);
     }
 
     @Override
@@ -21,7 +22,7 @@ public class Gun extends Weapon {
         double yDir = (yDest-y)/dist;
 
         ArrayList<Bullet> bullets = new ArrayList<>();
-        bullets.add(new NormalBullet(x,y,xDir,yDir,bulletSpeed, color, damage, belongTeam, effects));
+        bullets.add(new ExplosiveBullet(x,y,xDir,yDir,bulletSpeed, color, damage,2,true, belongTeam, effects));
         return bullets;
     }
 
@@ -32,8 +33,8 @@ public class Gun extends Weapon {
         double yDir = (yDest-y)/dist;
 
         ArrayList<Bullet> bullets = new ArrayList<>();
-        for(int i = -5; i<5; i++) {
-            bullets.add(new NormalBullet(x, y, xDir+i/10.0, yDir+i/10.0, bulletSpeed, color, damage, belongTeam, effects));
+        for(int i = -3; i<3; i++) {
+            bullets.add(new ExplosiveBullet(x,y,xDir,yDir,bulletSpeed, color, damage,2,true, belongTeam, effects));
         }
         return bullets;
     }

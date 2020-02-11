@@ -1,7 +1,8 @@
 package MazeGame;
 
-import MazeGame.weapons.Gun;
-import MazeGame.weapons.NoWeapon;
+import MazeGame.bullets.Bullet;
+import MazeGame.effect.Effect;
+import MazeGame.weapons.*;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -24,55 +25,64 @@ public class Player extends Creature {
 
     private int mapSize;
     private int totalMapSize;
-    private Cell[][] totalMap;
     private Room[][] rooms;
+    private CopyOnWriteArrayList<Effect> effects;
     private Weapon weapon;
     private CopyOnWriteArrayList<Enemy> enemies;
     private Random random = new Random();
     private ConcurrentHashMap<String,Integer> movePriorityList = new ConcurrentHashMap<>();
 
-    Player(int totalMapSize, int x, int y, Cell[][] totalMap, Room[][] rooms, CopyOnWriteArrayList<Enemy> enemies) {
-        super(100, 100, 1);
+    Player(int totalMapSize, int x, int y, Cell[][] totalMap, Room[][] rooms, CopyOnWriteArrayList<Enemy> enemies, CopyOnWriteArrayList<Effect> effects) {
+        super(100, 100, 1, totalMap);
         this.x = x;
         this.y = y;
+        iPos = x;
+        jPos = y;
         this.totalMapSize = totalMapSize;
-        this.totalMap = totalMap;
-        weapon = new Gun(Color.CYAN, getTeamNumber());
+        this.color = Color.CYAN;
+        this.effects = effects;
+        weapon = new Rocket(color, getTeamNumber(), effects);
         this.enemies = enemies;
         this.rooms = rooms;
         this.mapSize = rooms.length;
     }
 
-    public ArrayList<Bullet> fire(int xDest, int yDest) {
+    public void fire(int xDest, int yDest) {
         int yBorder = x - 27 > 0 ? x - 27 : 0;
         int xBorder = y - 40 > 0 ? y - 40 : 0;
-        return weapon.CheckFireStatus(y * 15 + 1, x * 15 + 1, xDest + xBorder * 15 - 10, yDest + yBorder * 15 - 35);
+        ArrayList<Bullet> tempList = weapon.CheckFireStatus(y * 15 + 1, x * 15 + 1, xDest + xBorder * 15 - 10, yDest + yBorder * 15 - 35);
+        if(tempList != null){
+            bullets.addAll(tempList);
+        }
     }
 
-    public ArrayList<Bullet> castAbility(int xDest, int yDest) {
+    public void castAbility(int xDest, int yDest) {
         int yBorder = x - 27 > 0 ? x - 27 : 0;
         int xBorder = y - 40 > 0 ? y - 40 : 0;
-        return weapon.CheckAbilityStatus(y * 15 + 1, x * 15 + 1, xDest + xBorder * 15 - 10, yDest + yBorder * 15 - 35);
+        ArrayList<Bullet> tempList = weapon.CheckAbilityStatus(y * 15 + 1, x * 15 + 1, xDest + xBorder * 15 - 10, yDest + yBorder * 15 - 35);
+        if(tempList != null){
+            bullets.addAll(tempList);
+        }
     }
 
     public void move(String dir) {
-        totalMap[x][y].setOccupiedCreature(null);
-        int newX = x;
-        int newY = y;
+        cellInfo[x][y].setOccupiedCreature(null);
+        double newX = iPos;
+        double newY = jPos;
         if (dir.equals("up")) {
-            newX = x - 1;
+            newX = iPos - 1;
         } else if (dir.equals("down")) {
-            newX = x + 1;
+            newX = iPos + 1;
         } else if (dir.equals("left")) {
-            newY = y - 1;
+            newY = jPos - 1;
         } else if (dir.equals("right")) {
-            newY = y + 1;
+            newY = jPos + 1;
         }
-        if (newX < 0) {
-            newX = 0;
+        if (newX < 1) {
+            newX = 1;
         }
-        if (newY < 0) {
-            newY = 0;
+        if (newY < 1) {
+            newY = 1;
         }
         if (newX >= totalMapSize) {
             newX = totalMapSize - 1;
@@ -82,13 +92,15 @@ public class Player extends Creature {
         }
 
         // check if new position is wall
-        if (totalMap[newX][newY].boarder || totalMap[x][y].getOccupiedCreature() != null) {
+        if (cellInfo[(int)newX][(int)newY].isBoarder() || cellInfo[x][y].getOccupiedCreature() != null) {
             // is wall or other creature
             return;
         } else {
-            x = newX;
-            y = newY;
-            totalMap[x][y].setOccupiedCreature(this);
+            iPos = newX;
+            jPos = newY;
+            x = (int)newX;
+            y = (int)newY;
+            cellInfo[x][y].setOccupiedCreature(this);
 
             int tempI = x / roomSize;
             int tempJ = y / roomSize;
@@ -96,8 +108,11 @@ public class Player extends Creature {
                 roomI = tempI;
                 roomJ = tempJ;
                 rooms[tempI][tempJ].visit(this);
-                clearPriorityList();
-                setMovePriority(roomI, roomJ, traceRange, -1);
+                checkRoomOpenness();
+                synchronized (movePriorityList){
+                    clearPriorityList();
+                    setMovePriority(roomI, roomJ, traceRange, -1);
+                }
             } else {
                 roomI = tempI;
                 roomJ = tempJ;
@@ -110,7 +125,7 @@ public class Player extends Creature {
         for (int i = 0; i < number; i++) {
             int tempI = random.nextInt(roomSize - 5) + 2;
             int tempJ = random.nextInt(roomSize - 5) + 2;
-            enemies.add(new Enemy(roomI * roomSize + tempI, roomJ * roomSize + tempJ, this, rooms, totalMap,movePriorityList));
+            enemies.add(new Enemy(roomI * roomSize + tempI, roomJ * roomSize + tempJ, this, rooms, cellInfo,movePriorityList, effects));
         }
     }
 
@@ -140,23 +155,25 @@ public class Player extends Creature {
     }
 
     public void pick() {
-        if (totalMap[x][y].getFallenWeapon() != null) {
+        if (cellInfo[x][y].getFallenWeapon() != null) {
             Weapon tempWeapon = null;
             if (weapon.getDamage() != 0) {
                 // means player equipped with a weapon
                 tempWeapon = weapon;
             }
-            weapon = totalMap[x][y].getFallenWeapon();
-            totalMap[x][y].setFallenWeapon(tempWeapon);
+            weapon = cellInfo[x][y].getFallenWeapon();
+            weapon.setColor(color);
+            weapon.setBelongTeam(getTeamNumber());
+            cellInfo[x][y].setFallenWeapon(tempWeapon);
         }
     }
 
     public void drop() {
         if (weapon.getDamage() != 0) {
             // means player equipped with a weapon
-            if (totalMap[x][y].getFallenWeapon() == null) {
-                totalMap[x][y].setFallenWeapon(weapon);
-                weapon = new NoWeapon(Color.CYAN, getTeamNumber());
+            if (cellInfo[x][y].getFallenWeapon() == null) {
+                cellInfo[x][y].setFallenWeapon(weapon);
+                weapon = new NoWeapon(Color.CYAN, getTeamNumber(), effects);
             }
         }
     }
@@ -164,6 +181,8 @@ public class Player extends Creature {
     public void teleport(int x, int y) {
         this.x = x;
         this.y = y;
+        this.iPos = x;
+        this.jPos = y;
         roomI = x / roomSize;
         roomJ = y / roomSize;
     }
@@ -222,6 +241,29 @@ public class Player extends Creature {
                     }
                 }
             }
+        }
+    }
+
+    public double getWeaponCD(){
+        return weapon.getCD();
+    }
+
+    private void checkRoomOpenness(){
+        rooms[roomI][roomJ].checkOpenness();
+        if(roomI - 1 >= 0){
+            rooms[roomI - 1][roomJ].checkOpenness();
+        }
+
+        if(roomJ - 1 >= 0){
+            rooms[roomI][roomJ - 1].checkOpenness();
+        }
+
+        if(roomI + 1 < rooms.length){
+            rooms[roomI + 1][roomJ].checkOpenness();
+        }
+
+        if(roomJ + 1 < rooms.length){
+            rooms[roomI][roomJ + 1].checkOpenness();
         }
     }
 }

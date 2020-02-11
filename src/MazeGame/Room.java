@@ -13,6 +13,7 @@ public class Room {
     private Boolean openRight = false;
     private boolean visited = false;
     private int enemyNumber;
+    Cell[][] cells = new Cell[roomSize][roomSize];
 
     public Room(){
         Random random = new Random();
@@ -35,7 +36,49 @@ public class Room {
         }
     }
 
-    Cell[][] cells = new Cell[roomSize][roomSize];
+    public void checkOpenness(){
+        int startPoint = (roomSize - 5)/2;
+
+        // check top
+        for(int i = 0; i<5; i++){
+            if(cells[0][startPoint+i].isBoarder()){
+                break;
+            }
+            if(i == 4){
+               openTop = true;
+            }
+        }
+
+        // check Bot
+        for(int i = 0; i<5; i++){
+            if(cells[roomSize - 1][startPoint+i].isBoarder()){
+                break;
+            }
+            if(i == 4){
+                openBot = true;
+            }
+        }
+
+        // check Left
+        for(int i = 0; i<5; i++){
+            if(cells[startPoint+i][0].isBoarder()){
+                break;
+            }
+            if(i == 4){
+                openLeft = true;
+            }
+        }
+
+        // check Right
+        for(int i = 0; i<5; i++){
+            if(cells[startPoint+i][roomSize-1].isBoarder()){
+                break;
+            }
+            if(i == 4){
+                openRight = true;
+            }
+        }
+    }
 
     public Boolean getOpenTop() {
         return openTop;
