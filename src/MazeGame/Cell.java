@@ -43,13 +43,13 @@ public class Cell {
         this.y = y;
     }
 
-    public Creature getOccupiedCreature() {
-        return occupiedCreature;
-    }
-
-    public void setOccupiedCreature(Creature occupiedCreature) {
-        this.occupiedCreature = occupiedCreature;
-    }
+//    public Creature getOccupiedCreature() {
+//        return occupiedCreature;
+//    }
+//
+//    public void setOccupiedCreature(Creature occupiedCreature) {
+//        this.occupiedCreature = occupiedCreature;
+//    }
 
     public Weapon getFallenWeapon() {
         return fallenWeapon;

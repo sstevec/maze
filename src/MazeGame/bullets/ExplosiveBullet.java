@@ -21,11 +21,11 @@ public class ExplosiveBullet extends Bullet {
     }
     @Override
     public void hurt(Creature creature) {
-        effects.add(new Explosion((int)x, (int)y,effectRadius*cellWidth,effectRadius,getDamage(),breakable));
+        effects.add(new Explosion((int)x, (int)y,effectRadius*cellWidth,effectRadius,getDamage(),breakable,enemies));
     }
 
     @Override
     public void dieEffect() {
-        effects.add(new Explosion((int)x, (int)y,25+effectRadius*cellWidth,effectRadius,getDamage(),breakable));
+        effects.add(new Explosion((int)x, (int)y,25+effectRadius*cellWidth,effectRadius,getDamage(),breakable,enemies));
     }
 }

@@ -20,10 +20,12 @@ public class Room {
         enemyNumber = random.nextInt(5);
     }
 
-    public void visit(Player player){
+    public boolean visit(){
         if(!visited){
             visited = true;
-            player.sumEnemy(enemyNumber);
+            return true;
+        }else {
+            return false;
         }
     }
 
@@ -36,49 +38,6 @@ public class Room {
         }
     }
 
-    public void checkOpenness(){
-        int startPoint = (roomSize - 5)/2;
-
-        // check top
-        for(int i = 0; i<5; i++){
-            if(cells[0][startPoint+i].isBoarder()){
-                break;
-            }
-            if(i == 4){
-               openTop = true;
-            }
-        }
-
-        // check Bot
-        for(int i = 0; i<5; i++){
-            if(cells[roomSize - 1][startPoint+i].isBoarder()){
-                break;
-            }
-            if(i == 4){
-                openBot = true;
-            }
-        }
-
-        // check Left
-        for(int i = 0; i<5; i++){
-            if(cells[startPoint+i][0].isBoarder()){
-                break;
-            }
-            if(i == 4){
-                openLeft = true;
-            }
-        }
-
-        // check Right
-        for(int i = 0; i<5; i++){
-            if(cells[startPoint+i][roomSize-1].isBoarder()){
-                break;
-            }
-            if(i == 4){
-                openRight = true;
-            }
-        }
-    }
 
     public Boolean getOpenTop() {
         return openTop;
@@ -116,4 +75,7 @@ public class Room {
         return cells;
     }
 
+    public int getEnemyNumber() {
+        return enemyNumber;
+    }
 }

@@ -1,5 +1,6 @@
 package MazeGame.weapons;
 
+import MazeGame.Creature;
 import MazeGame.bullets.Bullet;
 import MazeGame.bullets.NormalBullet;
 import MazeGame.effect.Effect;
@@ -10,8 +11,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Gun extends Weapon {
 
-    public Gun(Color color, int belongTeam, CopyOnWriteArrayList<Effect> effects){
-        super("Gun",5.0, 5, color,20, belongTeam,5, effects);
+    public Gun(Color color, int belongTeam, CopyOnWriteArrayList<Effect> effects, Creature user){
+        super("Gun",5.0, 5, color,20, belongTeam,5, effects, user);
     }
 
     @Override

@@ -18,8 +18,8 @@ public class MindControlGun extends Weapon {
     private int effectRadius = 1;
     private boolean breakable = false;
 
-    public MindControlGun(Color color, int belongTeam, CopyOnWriteArrayList<Effect> effects){
-        super("MindController",1.0, 5, color,1, belongTeam,1, effects);
+    public MindControlGun(Color color, int belongTeam, CopyOnWriteArrayList<Effect> effects, Creature user){
+        super("MindController",1.0, 5, color,1, belongTeam,1, effects, user);
         controlList = new CopyOnWriteArrayList<>();
     }
 
@@ -46,7 +46,7 @@ public class MindControlGun extends Weapon {
         }
         for (Creature temp:controlList
              ) {
-            effects.add(new Explosion((int)(temp.getjPos()*cellWidth), (int)(temp.getiPos()*cellWidth),25+effectRadius*cellWidth,effectRadius,100,breakable));
+            effects.add(new Explosion((int)(temp.getjPos()*cellWidth), (int)(temp.getiPos()*cellWidth),25+effectRadius*cellWidth,effectRadius,100,breakable,user.getEnemies()));
         }
         return null;
     }

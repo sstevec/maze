@@ -1,5 +1,6 @@
 package MazeGame.weapons;
 
+import MazeGame.Creature;
 import MazeGame.bullets.Bullet;
 import MazeGame.effect.Effect;
 
@@ -21,8 +22,9 @@ public abstract class Weapon {
     protected int damage;
     protected int belongTeam;
     protected CopyOnWriteArrayList<Effect> effects;
+    protected Creature user;
 
-    public Weapon(String name, double fireRate, int bulletSpeed, Color color, int damage, int belongTeam, double abilityCD, CopyOnWriteArrayList<Effect> effects){
+    public Weapon(String name, double fireRate, int bulletSpeed, Color color, int damage, int belongTeam, double abilityCD, CopyOnWriteArrayList<Effect> effects, Creature user){
         this.name = name;
         this.fireRate = fireRate;
         this.bulletSpeed = bulletSpeed;
@@ -31,6 +33,7 @@ public abstract class Weapon {
         this.belongTeam = belongTeam;
         this.abilityCD = abilityCD;
         this.effects = effects;
+        this.user = user;
     }
 
     public ArrayList<Bullet> CheckFireStatus(double xPos, double yPos, double xDest, double yDest){

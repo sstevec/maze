@@ -1,6 +1,8 @@
 package MazeGame.effect;
 
 import MazeGame.Cell;
+import MazeGame.Creature;
+import MazeGame.helper.enemyPositionRecorder;
 
 import java.awt.*;
 
@@ -15,8 +17,10 @@ public class Explosion extends Effect{
     private int damage;
     private boolean breakable = false;
 
-    public Explosion(int x, int y, int maxRadius, int effectRadius, int damage, boolean breakable){
-        super(x,y, Color.RED);
+
+    public Explosion(int x, int y, int maxRadius, int effectRadius, int damage, boolean breakable,
+                     enemyPositionRecorder[] enemies){
+        super(x,y, Color.RED, enemies);
         this.maxRadius = maxRadius;
         this.effectRadius = effectRadius;
         this.damage = damage;
@@ -27,19 +31,24 @@ public class Explosion extends Effect{
         dealDamage = true;
         int i = y/cellWidth;
         int j = x/cellWidth;
-        synchronized (cells) {
-            for (int x = i - effectRadius; x <= i + effectRadius; x++) {
-                for (int y = j - effectRadius; y <= j + effectRadius; y++) {
-                    if (x > 0 && y > 0) {
-                        if (x < roomSize * 10 - 1 && y < roomSize * 10 - 1) {
-                            if (cells[x][y].getOccupiedCreature() != null) {
-                                cells[x][y].getOccupiedCreature().takeDamage(damage);
-                            }
-                            if (breakable) {
-                                if (cells[x][y].isBoarder()) {
-                                    cells[x][y].setBoarder(false);
-                                }
-                            }
+
+        for(enemyPositionRecorder enemy: enemies){
+            Creature creature = enemy.getEnemyReference();
+            if(creature != null){
+                int iDis = creature.getiPos() - i;
+                int jDis = creature.getjPos() - j;
+                if(Math.sqrt(iDis * iDis + jDis * jDis) < effectRadius){
+                    creature.takeDamage(damage);
+                }
+            }
+        }
+
+        if(breakable) {
+            for (int startI = i - effectRadius + 1; startI < i + effectRadius; startI++) {
+                for (int startJ = j - effectRadius + 1; startJ < j + effectRadius; startJ++) {
+                    if (startI > 0 && startI < cells.length-1 && startJ > 0 && startJ < cells.length-1) {
+                        if(cells[startI][startJ].isBoarder()){
+                            cells[startI][startJ].setBoarder(false);
                         }
                     }
                 }

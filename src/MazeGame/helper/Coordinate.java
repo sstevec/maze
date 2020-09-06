@@ -1,5 +1,7 @@
 package MazeGame.helper;
 
+import java.awt.*;
+
 public class Coordinate {
     int row;
     int column;

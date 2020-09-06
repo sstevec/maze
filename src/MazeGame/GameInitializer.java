@@ -1,9 +1,11 @@
 package MazeGame;
 
 import MazeGame.effect.Effect;
+import MazeGame.helper.enemyPositionRecorder;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -18,6 +20,7 @@ public class GameInitializer {
     private ItemFrame itemFrame;
     private Player player;
     private Graphic graphic;
+    private gameController gameController;
 
     private GameInitializer gameInitializer = this;
 
@@ -29,8 +32,8 @@ public class GameInitializer {
 
     private Timer graphicDriver = new Timer();
 
-    private CopyOnWriteArrayList<Enemy> enemies = new CopyOnWriteArrayList<>();
-    private Timer enemyDriver = new Timer();
+    private enemyPositionRecorder[] enemies = new enemyPositionRecorder[200];
+    private ArrayList<Integer> enemySlot = new ArrayList<>();
 
     private CopyOnWriteArrayList<Effect> effects = new CopyOnWriteArrayList<>();
     private Timer effectDriver = new Timer();
@@ -50,19 +53,27 @@ public class GameInitializer {
         totalMap = mazeGenerator.getTotalMap();
         rooms = mazeGenerator.getRooms();
 
+        // init enemies
+        for(int i = 0; i<200; i++){
+            enemies[i] = new enemyPositionRecorder();
+            enemySlot.add(i);
+        }
+
         // init map variables
-        player = new Player(mapSize * roomSize, 1, 1, totalMap, rooms, enemies, effects);
+        player = new Player(mapSize * roomSize, 1, 1, totalMap, rooms, effects, enemies);
         graphic = new Graphic(totalMap, player, enemies, effects);
         abilityCDGraphic = new AbilityCDGraphic(player);
 
         itemFrame = new ItemFrame(player);
+        gameController = new gameController(rooms,player,enemies,enemySlot,totalMap);
     }
 
     public void initGame() {
+
         jFrame = new JFrame("MAZE");
 
         // 10 margin, and 20 cells on each side
-        jFrame.setBounds(300, 100, 1215, 825);
+        jFrame.setBounds(300, 100, 1215, 855);
         jFrame.setVisible(true);
         jFrame.setLayout(null);
         jFrame.setResizable(false);
@@ -188,23 +199,6 @@ public class GameInitializer {
         }, 0, 1000 / 20);
 
 
-        // keep checking enemy
-        enemyDriver.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                int enemySize = enemies.size();
-                for (int i = 0; i < enemySize; i++) {
-                    Enemy temp = enemies.get(i);
-                    if (temp.getCurrentHealth() <= 0) {
-                        enemies.remove(i);
-                        i--;
-                        enemySize--;
-                        temp.die();
-                    }
-                }
-            }
-        }, 0, 1000 / 5);
-
         effectDriver.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -245,11 +239,7 @@ public class GameInitializer {
         mazeGenerator.generateRooms();
         player.teleport(1, 1);
         // clear all enemy
-        for (Enemy temp : enemies
-        ) {
-            temp.die();
-        }
-        enemies.clear();
+        gameController.clearAllEnemies();
         graphic.drawElements();
     }
 }

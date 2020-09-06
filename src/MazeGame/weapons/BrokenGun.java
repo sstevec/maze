@@ -1,6 +1,8 @@
 package MazeGame.weapons;
 
+import MazeGame.Creature;
 import MazeGame.bullets.Bullet;
+import MazeGame.bullets.FireBullet;
 import MazeGame.bullets.NormalBullet;
 import MazeGame.effect.Effect;
 
@@ -10,8 +12,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class BrokenGun extends Weapon {
 
-    public BrokenGun(Color color, int belongTeam, CopyOnWriteArrayList<Effect> effects){
-        super("BrokenGun",2.0, 3, color,5, belongTeam,3, effects);
+    public BrokenGun(Color color, int belongTeam, CopyOnWriteArrayList<Effect> effects, Creature user){
+        super("BrokenGun",2.0, 3, color,5, belongTeam,3, effects, user);
     }
 
     @Override
@@ -21,7 +23,7 @@ public class BrokenGun extends Weapon {
         double yDir = (yDest-y)/dist;
 
         ArrayList<Bullet> bullets = new ArrayList<>();
-        bullets.add(new NormalBullet(x,y,xDir,yDir,bulletSpeed, color, damage, belongTeam, effects));
+        bullets.add(new FireBullet(x,y,xDir,yDir,bulletSpeed, color, damage, belongTeam, effects));
         return bullets;
     }
 
