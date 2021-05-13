@@ -51,7 +51,7 @@ public class MindControlGun extends Weapon {
         }
         for (Creature temp : controlList
         ) {
-            effects.add(new Explosion((int) (temp.getjPos() * cellWidth), (int) (temp.getiPos() * cellWidth), 25 + effectRadius * cellWidth, effectRadius, 100, breakable, user.getEnemies()));
+            effects.add(new Explosion((int) (temp.getjPos() * cellWidth), (int) (temp.getiPos() * cellWidth), 25 + effectRadius * cellWidth, effectRadius, 100, breakable, user.getCreatures()));
         }
     }
 

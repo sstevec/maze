@@ -20,18 +20,16 @@ public class GameController {
 
     private Room[][] rooms;
     private Player player;
-    private creaturePositionRecorder[] enemies ;
-    private ArrayList<Integer> enemySlot;
-    private Cell[][] totalMap;
+    private creaturePositionRecorder[] creatures ;
+    private ArrayList<Integer> creatureSlot;
     private GameResourceController gameResourceController;
 
     public GameController(GameResourceController gameResourceController){
         this.gameResourceController = gameResourceController;
         this.rooms = gameResourceController.getRooms();
         this.player = gameResourceController.getPlayer();
-        this.enemies = gameResourceController.getEnemies();
-        this.enemySlot = gameResourceController.getEnemySlot();
-        this.totalMap = gameResourceController.getTotalMap();
+        this.creatures = gameResourceController.getCreatures();
+        this.creatureSlot = gameResourceController.getCreatureSlot();
         init();
     }
 
@@ -77,10 +75,10 @@ public class GameController {
 
 
         // init enemies array
-        enemySlot.clear();
-        for(int i = 0; i<200; i++){
-            enemies[i].clear();
-            enemySlot.add(i);
+        creatureSlot.clear();
+        for(int i = 1; i<200; i++){
+            creatures[i].clear();
+            creatureSlot.add(i);
         }
     }
 

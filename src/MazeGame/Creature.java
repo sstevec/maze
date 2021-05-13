@@ -14,7 +14,7 @@ import java.util.TimerTask;
 
 
 public abstract class Creature {
-    protected int currentHealth = 100;
+    protected Integer currentHealth = 100;
     private int maxHealth = 100;
 
     protected int extraHealth = 0;
@@ -35,8 +35,7 @@ public abstract class Creature {
     protected ArrayList<Integer> avaSlot;
     protected ArrayList<Integer> readySlot;
     protected Timer bulletDriver = new Timer();
-    protected creaturePositionRecorder[] friends;
-    protected creaturePositionRecorder[] enemies;
+    protected creaturePositionRecorder[] creatures;
     protected GameResourceController gameResourceController;
 
     private boolean died = false;
@@ -53,6 +52,7 @@ public abstract class Creature {
         this.bullets = new bulletPositionRecorder[500];
         this.avaSlot = new ArrayList<>();
         this.readySlot = new ArrayList<>();
+        this.creatures = gameResourceController.getCreatures();
         customInit();
         initDriver();
     }
@@ -61,7 +61,7 @@ public abstract class Creature {
 
 
     public void takeDamage(int damage) {
-        synchronized (this) {
+        synchronized (currentHealth) {
             currentHealth = currentHealth - damage;
         }
     }
@@ -108,7 +108,7 @@ public abstract class Creature {
                     while(!bullets.isEmpty()) {
                         int assignNumber = avaSlot.remove(0);
                         Bullet bullet = bullets.remove(0);
-                        bullet.initBulletDriver(assignNumber, enemies, this.bullets, readySlot, cellInfo);
+                        bullet.initBulletDriver(assignNumber, creatures, this.bullets, readySlot, cellInfo);
                     }
                     return;
                 }
@@ -179,6 +179,10 @@ public abstract class Creature {
         return jPos;
     }
 
+    public creaturePositionRecorder[] getCreatures() {
+        return creatures;
+    }
+
     public bulletPositionRecorder[] getBullets() {
         return bullets;
     }
@@ -201,13 +205,6 @@ public abstract class Creature {
         buffs.remove(buff.getName());
     }
 
-    public creaturePositionRecorder[] getEnemies() {
-        return enemies;
-    }
-
-    public void setEnemies(creaturePositionRecorder[] enemies) {
-        this.enemies = enemies;
-    }
 
     public void updateAttribute(int extraHealth, int heal, int extraDamage, int extraCDReduce, int extraAttackSpeed){
         this.extraHealth += extraHealth;

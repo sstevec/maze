@@ -26,7 +26,7 @@ public abstract class Bullet {
     private int belongTeam;
     protected CopyOnWriteArrayList<Effect> effects;
     private Timer bulletDriver;
-    protected creaturePositionRecorder[] enemies;
+    protected creaturePositionRecorder[] creatures;
     private int assignNumber;
     private ArrayList<Integer> readyPool;
     private bulletPositionRecorder[] bullets;
@@ -55,10 +55,10 @@ public abstract class Bullet {
         bullets[assignNumber].setjPos((int) x);
     }
 
-    public void initBulletDriver(int assignNumber, creaturePositionRecorder[] enemyList, bulletPositionRecorder[] bullets,
+    public void initBulletDriver(int assignNumber, creaturePositionRecorder[] creatureList, bulletPositionRecorder[] bullets,
                                  ArrayList<Integer> readyPool, Cell[][] cells) {
-        // enemies is a list of creatures, it may contain null spot in between
-        this.enemies = enemyList;
+        // creatures is a list of creatures, it may contain null spot in between
+        this.creatures = creatureList;
 
         // bullets is a list of bullets that will be graphed, so we need to
         //   add this bullet to this list to show it on the screen
@@ -87,8 +87,8 @@ public abstract class Bullet {
 
 
                 // then check if the bullet hit any enemy
-                for (creaturePositionRecorder enemy : enemies) {
-                    Creature creature = enemy.getEnemyReference();
+                for (creaturePositionRecorder c : creatures) {
+                    Creature creature = c.getCreatureReference();
                     if (creature == null) {
                         continue;
                     }
@@ -99,7 +99,7 @@ public abstract class Bullet {
                     double iDis = iPos * cellWidth + 7.5 - y;
                     double dis = Math.sqrt(jDis * jDis + iDis * iDis);
 
-                    if (dis <= 12.5) {
+                    if (belongTeam != creature.getTeamNumber() && dis <= 12.5) {
                         hurt(creature);
                         die();
                         return;

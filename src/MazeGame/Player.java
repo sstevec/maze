@@ -48,8 +48,6 @@ public class Player extends Creature {
 
     @Override
     protected void customInit() {
-        this.enemies = gameResourceController.getEnemies();
-        this.friends = null;
     }
 
     /***
@@ -111,6 +109,8 @@ public class Player extends Creature {
         jPos = newY;
         x =  newX;
         y =  newY;
+        creatures[0].setiPos(iPos);
+        creatures[0].setjPos(jPos);
         roomI = x / roomSize;
         roomJ = y / roomSize;
 

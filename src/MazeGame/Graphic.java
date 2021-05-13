@@ -17,7 +17,7 @@ public class Graphic extends JPanel {
     private Cell[][] totalMap;
     private int totalMapSize;
     private Player playerInfo;
-    private creaturePositionRecorder[] enemies;
+    private creaturePositionRecorder[] creatures;
     private CopyOnWriteArrayList<Effect> effects;
     private Font itemFont = new Font("Cosmic", Font.BOLD, 12);
 
@@ -26,7 +26,7 @@ public class Graphic extends JPanel {
         this.totalMap = gameResourceController.getTotalMap();
         totalMapSize = gameResourceController.getTotalMapSize();
         this.playerInfo = gameResourceController.getPlayer();
-        this.enemies = gameResourceController.getEnemies();
+        this.creatures = gameResourceController.getCreatures();
         this.effects = gameResourceController.getEffects();
     }
 
@@ -93,25 +93,25 @@ public class Graphic extends JPanel {
             }
         }
 
-        for (creaturePositionRecorder temp : enemies
+        for (creaturePositionRecorder temp : creatures
         ) {
-            Creature creature = temp.getEnemyReference();
-            if(creature == null){
+            Creature creature = temp.getCreatureReference();
+            if (creature == null) {
                 continue;
             }
             int iPos = temp.getiPos();
-            int jPos= temp.getjPos();
+            int jPos = temp.getjPos();
 
             graphics.setColor(temp.getColor());
             graphics.drawString(creature.getCurrentHealth() + " / " + creature.getMaxHealth(), (jPos - startY) * 15 - 15, (iPos - startX) * 15 - 5);
 
-            graphics.fillRect( (jPos - startY) * 15,  (iPos - startX) * 15, 15, 15);
+            graphics.fillRect((jPos - startY) * 15, (iPos - startX) * 15, 15, 15);
 
             bulletPositionRecorder[] bullets = creature.getBullets();
             for (bulletPositionRecorder tempC : bullets
             ) {
                 Bullet tempB = tempC.getBulletReference();
-                if(tempB == null){
+                if (tempB == null) {
                     continue;
                 }
                 graphics.fillArc((int) Math.round(tempB.getX() - (startY * 15)), (int) Math.round(tempB.getY() - (startX * 15)), 10, 10, 0, 360);
@@ -127,20 +127,20 @@ public class Graphic extends JPanel {
         }
 
 
-        graphics.setColor(Color.BLACK);
-        graphics.drawString(playerInfo.getCurrentHealth() + " / " + playerInfo.getMaxHealth(), (yPos - startY) * 15 - 15, (xPos - startX) * 15 - 5);
-        graphics.setColor(Color.cyan);
-        graphics.fillRect((yPos - startY) * 15, (xPos - startX) * 15, 15, 15);
-
-        bulletPositionRecorder[] bullets = playerInfo.getBullets();
-        for (bulletPositionRecorder tempC : bullets
-        ) {
-            Bullet tempB = tempC.getBulletReference();
-            if(tempB == null){
-                continue;
-            }
-            graphics.fillArc((int) Math.round(tempB.getX() - (startY * 15)), (int) Math.round(tempB.getY() - (startX * 15)), 10, 10, 0, 360);
-        }
+//        graphics.setColor(Color.BLACK);
+//        graphics.drawString(playerInfo.getCurrentHealth() + " / " + playerInfo.getMaxHealth(), (yPos - startY) * 15 - 15, (xPos - startX) * 15 - 5);
+//        graphics.setColor(Color.cyan);
+//        graphics.fillRect((yPos - startY) * 15, (xPos - startX) * 15, 15, 15);
+//
+//        bulletPositionRecorder[] bullets = playerInfo.getBullets();
+//        for (bulletPositionRecorder tempC : bullets
+//        ) {
+//            Bullet tempB = tempC.getBulletReference();
+//            if (tempB == null) {
+//                continue;
+//            }
+//            graphics.fillArc((int) Math.round(tempB.getX() - (startY * 15)), (int) Math.round(tempB.getY() - (startX * 15)), 10, 10, 0, 360);
+//        }
     }
 
 }

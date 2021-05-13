@@ -10,13 +10,13 @@ public abstract class Effect {
     protected int y;
     protected boolean dealDamage = false;
     private Color color;
-    protected creaturePositionRecorder[] enemies;
+    protected creaturePositionRecorder[] creatures;
 
-    public Effect(int x, int y, Color color, creaturePositionRecorder[] enemies){
+    public Effect(int x, int y, Color color, creaturePositionRecorder[] creatures){
         this.y = y;
         this.x = x;
         this.color = color;
-        this.enemies = enemies;
+        this.creatures = creatures;
     }
 
     public abstract void doDamage(Cell[][] cells);

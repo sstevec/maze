@@ -28,7 +28,7 @@ public class GameInitializer {
         gameResourceController.initMap();
 
         // let resource center init enemies
-        gameResourceController.initEnemySlot(200);
+        gameResourceController.initCreatureSlot(200);
 
         // let resource center init player
         gameResourceController.initPlayer(roomSize/3,roomSize/3);

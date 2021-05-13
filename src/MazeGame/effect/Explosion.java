@@ -18,8 +18,8 @@ public class Explosion extends Effect{
 
 
     public Explosion(int x, int y, int maxRadius, int effectRadius, int damage, boolean breakable,
-                     creaturePositionRecorder[] enemies){
-        super(x,y, Color.RED, enemies);
+                     creaturePositionRecorder[] creatures){
+        super(x,y, Color.RED, creatures);
         this.maxRadius = maxRadius;
         this.effectRadius = effectRadius;
         this.damage = damage;
@@ -31,8 +31,8 @@ public class Explosion extends Effect{
         int i = y/cellWidth;
         int j = x/cellWidth;
 
-        for(creaturePositionRecorder enemy: enemies){
-            Creature creature = enemy.getEnemyReference();
+        for(creaturePositionRecorder enemy: creatures){
+            Creature creature = enemy.getCreatureReference();
             if(creature != null){
                 int iDis = creature.getiPos() - i;
                 int jDis = creature.getjPos() - j;

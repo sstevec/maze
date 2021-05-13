@@ -12,12 +12,12 @@ public class creaturePositionRecorder {
     private int jPos;
     private Color color;
     private bulletPositionRecorder[] bullets;
-    private Creature enemyReference;
+    private Creature creatureReference;
 
     public creaturePositionRecorder(){
         iPos = -1;
         jPos = -1;
-        enemyReference = null;
+        creatureReference = null;
     }
 
     public int getiPos() {
@@ -57,11 +57,11 @@ public class creaturePositionRecorder {
         this.bullets = bullets;
     }
 
-    public Creature getEnemyReference() {
-        return enemyReference;
+    public Creature getCreatureReference() {
+        return creatureReference;
     }
 
-    public void setEnemyReference(Creature enemyReference) {
-        this.enemyReference = enemyReference;
+    public void setCreatureReference(Creature creatureReference) {
+        this.creatureReference = creatureReference;
     }
 }

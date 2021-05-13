@@ -114,7 +114,7 @@ public abstract class Weapon extends Item {
             return 0.0;
         }else{
             double cd = abilityCD*1000*(100.0/(100+extraCoolDown));
-            return (cd - currentTime)/cd;
+            return Math.max((cd - currentTime)/cd, 0);
         }
     }
 

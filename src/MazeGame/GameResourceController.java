@@ -31,8 +31,8 @@ public class GameResourceController {
 
     private Timer graphicDriver = new Timer();
 
-    private creaturePositionRecorder[] enemies;
-    private ArrayList<Integer> enemySlot = new ArrayList<>();
+    private creaturePositionRecorder[] creatures;
+    private ArrayList<Integer> creatureSlot = new ArrayList<>();
 
     private CopyOnWriteArrayList<Effect> effects = new CopyOnWriteArrayList<>();
     private Timer effectDriver = new Timer();
@@ -57,16 +57,22 @@ public class GameResourceController {
         rooms = mazeGenerator.getRooms();
     }
 
-    public void initEnemySlot(int slotSize){
-        enemies =  new creaturePositionRecorder[slotSize];
-        for(int i = 0; i<slotSize; i++){
-            enemies[i] = new creaturePositionRecorder();
-            enemySlot.add(i);
+    public void initCreatureSlot(int slotSize){
+        creatures =  new creaturePositionRecorder[slotSize];
+        for(int i = 1; i<slotSize; i++){
+            creatures[i] = new creaturePositionRecorder();
+            creatureSlot.add(i);
         }
     }
 
     public void initPlayer(int x, int y){
         player = new Player( x, y, this);
+        creatures[0] = new creaturePositionRecorder();
+        creatures[0].setiPos(player.iPos);
+        creatures[0].setjPos(player.jPos);
+        creatures[0].setColor(player.color);
+        creatures[0].setBullets(player.bullets);
+        creatures[0].setCreatureReference(player);
     }
 
     public void initGraphicSystem(){
@@ -192,20 +198,12 @@ public class GameResourceController {
         this.graphicDriver = graphicDriver;
     }
 
-    public creaturePositionRecorder[] getEnemies() {
-        return enemies;
+    public creaturePositionRecorder[] getCreatures() {
+        return creatures;
     }
 
-    public void setEnemies(creaturePositionRecorder[] enemies) {
-        this.enemies = enemies;
-    }
-
-    public ArrayList<Integer> getEnemySlot() {
-        return enemySlot;
-    }
-
-    public void setEnemySlot(ArrayList<Integer> enemySlot) {
-        this.enemySlot = enemySlot;
+    public ArrayList<Integer> getCreatureSlot() {
+        return creatureSlot;
     }
 
     public CopyOnWriteArrayList<Effect> getEffects() {
