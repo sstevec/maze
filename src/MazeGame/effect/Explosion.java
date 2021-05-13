@@ -2,12 +2,11 @@ package MazeGame.effect;
 
 import MazeGame.Cell;
 import MazeGame.Creature;
-import MazeGame.helper.enemyPositionRecorder;
+import MazeGame.helper.creaturePositionRecorder;
 
 import java.awt.*;
 
 import static MazeGame.Info.cellWidth;
-import static MazeGame.Info.roomSize;
 
 public class Explosion extends Effect{
 
@@ -19,7 +18,7 @@ public class Explosion extends Effect{
 
 
     public Explosion(int x, int y, int maxRadius, int effectRadius, int damage, boolean breakable,
-                     enemyPositionRecorder[] enemies){
+                     creaturePositionRecorder[] enemies){
         super(x,y, Color.RED, enemies);
         this.maxRadius = maxRadius;
         this.effectRadius = effectRadius;
@@ -32,7 +31,7 @@ public class Explosion extends Effect{
         int i = y/cellWidth;
         int j = x/cellWidth;
 
-        for(enemyPositionRecorder enemy: enemies){
+        for(creaturePositionRecorder enemy: enemies){
             Creature creature = enemy.getEnemyReference();
             if(creature != null){
                 int iDis = creature.getiPos() - i;

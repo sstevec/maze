@@ -1,7 +1,10 @@
 package MazeGame;
 
-import MazeGame.rooms.*;
+import MazeGame.helper.Coordinate;
+import MazeGame.helper.Point;
 
+
+import java.util.ArrayList;
 import java.util.Random;
 
 import static MazeGame.Info.roomSize;
@@ -12,75 +15,114 @@ public class MazeGenerator {
     private Room[][] rooms;
     private Cell[][] totalMap;
     private Random random = new Random();
+    private Point[][] map;
 
     MazeGenerator(int mapSize) {
         this.mapSize = mapSize;
         rooms = new Room[mapSize][mapSize];
         totalMap = new Cell[mapSize * roomSize][mapSize * roomSize];
+        map = new Point[mapSize*3][mapSize*3];
     }
 
     public void generateRooms() {
+        initMapBound();
+        createMaze();
         for (int i = 0; i < mapSize; i++) {
             for (int j = 0; j < mapSize; j++) {
-                boolean[] requirements = new boolean[8]; // top, right, bot, left || from open to close
-                for (int k = 0; k < 8; k++) {
-                    requirements[k] = false;
-                }
-
-                // boundary requirements
-                if (i == 0) {
-                    // top close
-                    requirements[4] = true;
-                }
-
-                if (i == mapSize - 1) {
-                    // bot close
-                    requirements[6] = true;
-                }
-
-                if (j == 0) {
-                    // left close
-                    requirements[7] = true;
-                }
-
-                if (j == mapSize - 1) {
-                    // right close
-                    requirements[5] = true;
-                }
-
-                // previous room requirements
-                if (i != 0) {
-                    // top room requirements
-                    if (rooms[i - 1][j].getOpenBot()) {
-                        // top room open bot, we need open top
-                        requirements[0] = true;
+                rooms[i][j] = new Room();
+                for(int k = 0; k<3; k++){
+                    for(int l = 0; l<3; l++){
+                        rooms[i][j].wallSet[k][l] = map[i*3+k][j*3+l].isWall();
                     }
                 }
-
-                if (j != 0) {
-                    // left room requirements
-                    if (rooms[i][j - 1].getOpenRight()) {
-                        requirements[3] = true;
-                    }
-                }
-
-                int randomRoomNum;
-                while (true) {
-                    // current have 16 rooms
-                    randomRoomNum = random.nextInt(15);
-
-                    if (isRoomValid(randomRoomNum, requirements)) {
-                        break;
-                    }
-                }
-
-                // generate the corresponding room
-                rooms[i][j] = generateRoom(randomRoomNum);
+                rooms[i][j].generateRoom();
             }
         }
         rememberRooms();
         setProtal();
     }
+
+    void initMapBound() {
+        for (int i = 0; i < mapSize*3; i++) {
+            for (int j = 0; j < mapSize*3; j++) {
+                map[i][j] = new Point();
+            }
+        }
+        for (int i = 0; i < mapSize*3; i++) {
+            map[i][0].setBound(true);
+            map[i][mapSize*3 - 1].setBound(true);
+        }
+
+        for(int i = 0; i<mapSize*3; i++){
+            map[mapSize*3 - 1][i].setBound(true);
+            map[0][i].setBound(true);
+        }
+
+        map[1][1].setStart(true);
+        map[mapSize*3 - 2][mapSize*3 - 2].setEnd(true);
+    }
+
+    void createMaze() {
+        ArrayList<Coordinate> wallList = new ArrayList<>();
+        int fx[] = new int[]{1, -1, 0, 0};
+        int fy[] = new int[]{0, 0, 1, -1};
+        Random random = new Random();
+        for (int i = 0; i < mapSize*3; i++) {
+            for (int j = 0; j < mapSize*3; j++) {
+                map[i][j].setWall(true);
+            }
+        }
+        int currentI = random.nextInt(mapSize*3 - 3) + 1;
+        int currentJ = random.nextInt(mapSize*3 - 3) + 1;
+        map[currentI][currentJ].setWall(false);
+
+        for (int i = 0; i < 4; i++) {
+            if (currentI + fx[i] > 0 && currentI + fx[i] < mapSize*3 - 1 && currentJ + fy[i] > 0 && currentJ + fy[i] < mapSize*3 - 1) {
+                wallList.add(new Coordinate(currentI + fx[i], currentJ + fy[i]));
+                map[currentI + fx[i]][currentJ + fy[i]].setInWallList(true);
+                map[currentI + fx[i]][currentJ + fy[i]].setComeDir(i%2 == 0? i+1: i-1);
+            }
+        }
+
+        while (!wallList.isEmpty()) {
+            int wallNumber = random.nextInt(wallList.size());
+            Coordinate wallPoint =  wallList.get(wallNumber);
+            int comeDir = map[wallPoint.getRow()][wallPoint.getColumn()].getComeDir();
+            currentI = wallPoint.getRow() + fx[comeDir];
+            currentJ = wallPoint.getColumn() + fy[comeDir];
+
+            int targetI = 2 *wallPoint.getRow() - currentI;
+            int targetJ = 2 *wallPoint.getColumn() - currentJ;
+
+            // the problem is this maze lack of round road, so I decide to give it 1/9 chance to to
+            //   create round road
+            if (map[targetI][targetJ].isWall()) {
+                map[targetI][targetJ].setWall(false);
+                map[wallPoint.getRow()][wallPoint.getColumn()].setWall(false);
+                for (int i = 0; i < 4; i++) {
+                    if (targetI + fx[i] > 0 && targetI + fx[i] < mapSize*3 - 1 && targetJ + fy[i] > 0 && targetJ + fy[i] < mapSize*3 - 1) {
+                        if (map[targetI + fx[i]][targetJ + fy[i]].isWall() && !map[targetI + fx[i]][targetJ + fy[i]].isInWallList()) {
+                            wallList.add(new Coordinate(targetI + fx[i], targetJ + fy[i]));
+                            map[targetI + fx[i]][targetJ + fy[i]].setInWallList(true);
+                            map[targetI + fx[i]][targetJ + fy[i]].setComeDir(i%2 == 0? i+1: i-1);
+                        }
+                    }
+                }
+
+            }else{
+                int num = random.nextInt(9);
+                if(num == 1){
+                    // 1/9 chance open the way
+                    map[wallPoint.getRow()][wallPoint.getColumn()].setWall(false);
+                }
+            }
+            wallList.remove(wallNumber);
+            map[wallPoint.getRow()][wallPoint.getColumn()].setInWallList(false);
+        }
+        map[1][1].setWall(false);
+        map[mapSize*3-2][mapSize*3-2].setWall(false);
+    }
+
 
     private void rememberRooms() {
         for (int i = 0; i < mapSize; i++) {
@@ -97,206 +139,6 @@ public class MazeGenerator {
         }
     }
 
-    private boolean isRoomValid(int roomNumber, boolean[] requirements) {
-        boolean openTop = false;
-        boolean openBot = false;
-        boolean openLeft = false;
-        boolean openRight = false;
-        if (roomNumber == 0) {
-            // room corner 1
-            openBot = true;
-            openRight = true;
-        } else if (roomNumber == 1) {
-            // room corner 2
-            openBot = true;
-            openLeft = true;
-        } else if (roomNumber == 2) {
-            // room corner 3
-            openTop = true;
-            openLeft = true;
-        } else if (roomNumber == 3) {
-            // room corner 4
-            openTop = true;
-            openRight = true;
-        } else if (roomNumber == 4) {
-            // room cross
-            openBot = true;
-            openLeft = true;
-            openRight = true;
-            openTop = true;
-        } else if (roomNumber == 5) {
-            // room I left
-            openLeft = true;
-            openRight = true;
-        } else if (roomNumber == 6) {
-            // room I top
-            openTop = true;
-            openBot = true;
-        } else if (roomNumber == 7) {
-            // room T 1
-            openBot = true;
-            openRight = true;
-            openLeft = true;
-        } else if (roomNumber == 8) {
-            // room T 2
-            openTop = true;
-            openRight = true;
-            openLeft = true;
-        } else if (roomNumber == 9) {
-            // room T 3
-            openTop = true;
-            openBot = true;
-            openLeft = true;
-        } else if (roomNumber == 10) {
-            // room T 4
-            openTop = true;
-            openBot = true;
-            openRight = true;
-        } else if (roomNumber == 11) {
-            // room Wall 1
-            openLeft = true;
-            openBot = true;
-            openRight = true;
-        } else if (roomNumber == 12) {
-            // room Wall 2
-            openTop = true;
-            openBot = true;
-            openLeft = true;
-        } else if (roomNumber == 13) {
-            // room Wall 3
-            openTop = true;
-            openLeft = true;
-            openRight = true;
-        } else if (roomNumber == 14) {
-            // room Wall 4
-            openTop = true;
-            openBot = true;
-            openRight = true;
-        } else if (roomNumber == 15) {
-            // room All Open
-            openTop = true;
-            openBot = true;
-            openRight = true;
-            openLeft = true;
-        } else if (roomNumber == 16) {
-            // room Wall 5
-            openRight = true;
-            openLeft = true;
-        } else if (roomNumber == 17) {
-            // room Wall 6
-            openTop = true;
-            openBot = true;
-        }
-
-        if (requirements[0]) {
-            if (!openTop) {
-                return false;
-            }
-        }
-
-        if (requirements[1]) {
-            if (!openRight) {
-                return false;
-            }
-        }
-
-        if (requirements[2]) {
-            if (!openBot) {
-                return false;
-            }
-        }
-
-        if (requirements[3]) {
-            if (!openLeft) {
-                return false;
-            }
-        }
-
-        if (requirements[4]) {
-            if (openTop) {
-                return false;
-            }
-        }
-
-        if (requirements[5]) {
-            if (openRight) {
-                return false;
-            }
-        }
-
-        if (requirements[6]) {
-            if (openBot) {
-                return false;
-            }
-        }
-
-        if (requirements[7]) {
-            if (openLeft) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private Room generateRoom(int roomNumber) {
-        if (roomNumber == 0) {
-            // room corner 1
-            return new Room_Corner_1();
-        } else if (roomNumber == 1) {
-            // room corner 2
-            return new Room_Corner_2();
-        } else if (roomNumber == 2) {
-            // room corner 3
-            return new Room_Corner_3();
-        } else if (roomNumber == 3) {
-            // room corner 4
-            return new Room_Corner_4();
-        } else if (roomNumber == 4) {
-            // room cross
-            return new Room_Cross();
-        } else if (roomNumber == 5) {
-            // room I left
-            return new Room_I_Left();
-        } else if (roomNumber == 6) {
-            // room I top
-            return new Room_I_Top();
-        } else if (roomNumber == 7) {
-            // room T 1
-            return new Room_T_1();
-        } else if (roomNumber == 8) {
-            // room T 2
-            return new Room_T_2();
-        } else if (roomNumber == 9) {
-            // room T 3
-            return new Room_T_3();
-        } else if (roomNumber == 10) {
-            // room T 4
-            return new Room_T_4();
-        } else if (roomNumber == 11) {
-            // room Wall 1
-            return new Room_Wall_1();
-        } else if (roomNumber == 12) {
-            // room Wall 2
-            return new Room_Wall_2();
-        } else if (roomNumber == 13) {
-            // room Wall 3
-            return new Room_Wall_3();
-        } else if (roomNumber == 14) {
-            // room Wall 4
-            return new Room_Wall_4();
-        } else if (roomNumber == 15) {
-            // room All Open
-            return new Room_All_Open();
-        } else if (roomNumber == 16) {
-            // room Wall 5
-            return new Room_Wall_5();
-        } else if (roomNumber == 17) {
-            // room Wall 6
-            return new Room_Wall_6();
-        } else {
-            return new Room();
-        }
-    }
 
     private void setProtal(){
         rooms[mapSize-1][mapSize-1].setPortal();

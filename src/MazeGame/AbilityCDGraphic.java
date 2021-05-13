@@ -6,8 +6,8 @@ import java.awt.*;
 public class AbilityCDGraphic extends JPanel {
     private Player player;
 
-    AbilityCDGraphic(Player player){
-        this.player = player;
+    AbilityCDGraphic(GameResourceController gameResourceController){
+        this.player = gameResourceController.getPlayer();
         this.setBounds(1100,700,51,51);
     }
 

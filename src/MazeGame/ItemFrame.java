@@ -24,8 +24,8 @@ public class ItemFrame {
 
     private Weapon weapon;
 
-    public ItemFrame(Player player){
-        this.player = player;
+    public ItemFrame(GameResourceController gameResourceController){
+        this.player = gameResourceController.getPlayer();
         jFrame = new JFrame("Bag");
 
         jFrame.setBounds(600, 300, 615, 425);

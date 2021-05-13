@@ -12,28 +12,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class NoWeapon extends Weapon {
 
-    Random random = new Random();
-    public NoWeapon(Color color, int belongTeam, CopyOnWriteArrayList<Effect> effects, Creature user){
-        super("NoWeapon",0.001, 0, color,0, belongTeam,10, effects, user);
+
+    public NoWeapon(Color color, int belongTeam, CopyOnWriteArrayList<Effect> effects, Creature user) {
+        super("NoWeapon", 0.001, 0, color, 0, belongTeam, 10, effects, user);
     }
 
     @Override
-    protected ArrayList<Bullet> fire(double x, double y, double xDest, double yDest){
-        return null;
+    protected void fire(double x, double y, double xDest, double yDest) {
     }
 
     @Override
-    protected ArrayList<Bullet> cast(int x, int y, int xDest, int yDest) {
-        double dist = Math.sqrt((xDest-x)*(xDest-x) + (yDest-y)*(yDest-y));
-        double xDir = (xDest-x)/dist;
-        double yDir = (yDest-y)/dist;
-
-        ArrayList<Bullet> bullets = new ArrayList<>();
-        for(int i = 0; i<30; i++) {
-            int tempX = random.nextInt(21)-10;
-            int tempY = random.nextInt(21)-10;
-            bullets.add(new NormalBullet(x, y, xDir+tempX/10.0, yDir+tempY/10.0, 3, color, 1, belongTeam, effects));
-        }
-        return bullets;
+    protected void cast(int x, int y, int xDest, int yDest) {
     }
 }

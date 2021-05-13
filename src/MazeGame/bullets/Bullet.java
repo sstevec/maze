@@ -4,7 +4,7 @@ import MazeGame.Cell;
 import MazeGame.Creature;
 import MazeGame.effect.Effect;
 import MazeGame.helper.bulletPositionRecorder;
-import MazeGame.helper.enemyPositionRecorder;
+import MazeGame.helper.creaturePositionRecorder;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -16,9 +16,9 @@ import static MazeGame.Info.cellWidth;
 
 public abstract class Bullet {
 
-    protected double x;
+    protected double x;         // pos of the bullet
     protected double y;
-    private double xDir;
+    private double xDir;        // directions of the bullet
     private double yDir;
     private int speed;
     private int damage;
@@ -26,7 +26,7 @@ public abstract class Bullet {
     private int belongTeam;
     protected CopyOnWriteArrayList<Effect> effects;
     private Timer bulletDriver;
-    protected enemyPositionRecorder[] enemies;
+    protected creaturePositionRecorder[] enemies;
     private int assignNumber;
     private ArrayList<Integer> readyPool;
     private bulletPositionRecorder[] bullets;
@@ -55,12 +55,20 @@ public abstract class Bullet {
         bullets[assignNumber].setjPos((int) x);
     }
 
-    public void initBulletDriver(int assignNumber, enemyPositionRecorder[] enemyList, bulletPositionRecorder[] bullets,
+    public void initBulletDriver(int assignNumber, creaturePositionRecorder[] enemyList, bulletPositionRecorder[] bullets,
                                  ArrayList<Integer> readyPool, Cell[][] cells) {
+        // enemies is a list of creatures, it may contain null spot in between
         this.enemies = enemyList;
+
+        // bullets is a list of bullets that will be graphed, so we need to
+        //   add this bullet to this list to show it on the screen
+        this.bullets = bullets;
+
+        // bullets is not RW safe, so what we do here is assign it a spot that is
+        //   guarantee to be empty so we don't have to lock it
         this.assignNumber = assignNumber;
         this.readyPool = readyPool;
-        this.bullets = bullets;
+
         this.cells = cells;
 
         bullets[assignNumber].setiPos((int) y);
@@ -79,7 +87,7 @@ public abstract class Bullet {
 
 
                 // then check if the bullet hit any enemy
-                for (enemyPositionRecorder enemy : enemies) {
+                for (creaturePositionRecorder enemy : enemies) {
                     Creature creature = enemy.getEnemyReference();
                     if (creature == null) {
                         continue;
@@ -94,6 +102,7 @@ public abstract class Bullet {
                     if (dis <= 12.5) {
                         hurt(creature);
                         die();
+                        return;
                     }
                 }
 
@@ -114,14 +123,30 @@ public abstract class Bullet {
         bullets[assignNumber].setiPos(-1);
         bullets[assignNumber].setjPos(-1);
         bullets[assignNumber].setBulletReference(null);
+
+        // give the assigned number back so the graph list slot can be reused
         synchronized (readyPool){
             readyPool.add(assignNumber);
         }
     }
 
-    public abstract void hurt(Creature creature);
 
-    public abstract void dieEffect();
+    /***
+     *
+     * When a bullet hit a target, it hurts the target and disappear
+     * Thus, child class should implement hurt so that it can apply buff
+     *  to the target or do whatever they want
+     * Child class should also implement dieEffect, so that bullet can do something
+     *  like explode when it disappear
+     *
+     */
+
+    abstract void hurt(Creature creature);
+
+    abstract void dieEffect();
+
+
+
 
     public double getX() {
         return x;

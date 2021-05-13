@@ -17,7 +17,7 @@ public class ControlBullet extends Bullet {
     }
     @Override
     public void hurt(Creature creature) {
-        creature.takeDamage(1);
+        creature.takeDamage(getDamage());
         if(creature instanceof Enemy){
             ((Enemy) creature).betray(getBelongTeam());
             controlList.add(creature);

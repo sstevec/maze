@@ -1,12 +1,9 @@
 package MazeGame;
 
 import MazeGame.effect.Effect;
-import MazeGame.helper.enemyPositionRecorder;
 
 import javax.swing.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -14,63 +11,42 @@ import static MazeGame.Info.roomSize;
 
 public class GameInitializer {
 
-    private int mapSize = 10;
-    private JFrame jFrame;
-    private MazeGenerator mazeGenerator;
-    private ItemFrame itemFrame;
-    private Player player;
-    private Graphic graphic;
-    private gameController gameController;
-
-    private GameInitializer gameInitializer = this;
-
-    private AbilityCDGraphic abilityCDGraphic;
-    private Timer cdTimer = new Timer();
-
-    private Cell[][] totalMap;
-    private Room[][] rooms;
-
-    private Timer graphicDriver = new Timer();
-
-    private enemyPositionRecorder[] enemies = new enemyPositionRecorder[200];
-    private ArrayList<Integer> enemySlot = new ArrayList<>();
-
-    private CopyOnWriteArrayList<Effect> effects = new CopyOnWriteArrayList<>();
-    private Timer effectDriver = new Timer();
-
-    private Timer playerDriver = new Timer();
+    private GameResourceController gameResourceController;
     private boolean U = false, D = false, L = false, R = false;
-
-    private Timer playerShootingDriver = new Timer();
-    private boolean openFire = false;
     private int mouseX, mouseY;
+    private boolean openFire = false;
+    private Graphic graphic;
+    private AbilityCDGraphic abilityCDGraphic;
+    private Cell[][] totalMap;
+    private CopyOnWriteArrayList<Effect> effects;
 
-    GameInitializer(int mapSize) {
-        this.mapSize = mapSize;
-        mazeGenerator = new MazeGenerator(mapSize);
-        mazeGenerator.generateRooms();
+    GameInitializer(int mapSize, StartMenu startMenu) {
+        // init resource center
+        gameResourceController = new GameResourceController(this, startMenu, mapSize);
 
-        totalMap = mazeGenerator.getTotalMap();
-        rooms = mazeGenerator.getRooms();
+        // let resource center init map
+        gameResourceController.initMap();
 
-        // init enemies
-        for(int i = 0; i<200; i++){
-            enemies[i] = new enemyPositionRecorder();
-            enemySlot.add(i);
-        }
+        // let resource center init enemies
+        gameResourceController.initEnemySlot(200);
 
-        // init map variables
-        player = new Player(mapSize * roomSize, 1, 1, totalMap, rooms, effects, enemies);
-        graphic = new Graphic(totalMap, player, enemies, effects);
-        abilityCDGraphic = new AbilityCDGraphic(player);
+        // let resource center init player
+        gameResourceController.initPlayer(roomSize/3,roomSize/3);
 
-        itemFrame = new ItemFrame(player);
-        gameController = new gameController(rooms,player,enemies,enemySlot,totalMap);
+        // let resource center init graphic
+        gameResourceController.initGraphicSystem();
+
+        // let resource center init game controller
+        gameResourceController.initGameController();
+
+        graphic = gameResourceController.getGraphic();
+        abilityCDGraphic = gameResourceController.getAbilityCDGraphic();
+        totalMap = gameResourceController.getTotalMap();
+        effects = gameResourceController.getEffects();
     }
 
     public void initGame() {
-
-        jFrame = new JFrame("MAZE");
+        JFrame jFrame = new JFrame("MAZE");
 
         // 10 margin, and 20 cells on each side
         jFrame.setBounds(300, 100, 1215, 855);
@@ -81,18 +57,21 @@ public class GameInitializer {
 
         // add elements to frame
         JLayeredPane jLayeredPane = new JLayeredPane();
-        jLayeredPane.add(graphic, new Integer(100));
-        jLayeredPane.add(abilityCDGraphic, new Integer(200));
+        jLayeredPane.add(gameResourceController.getGraphic(), new Integer(100));
+        jLayeredPane.add(gameResourceController.getAbilityCDGraphic(), new Integer(200));
         jLayeredPane.setBounds(0, 0, 1215, 825);
         jFrame.add(jLayeredPane);
 
-        graphic.drawElements();
+        gameResourceController.getGraphic().drawElements();
+        gameResourceController.setjFrame(jFrame);
         startGame();
     }
 
     private void startGame() {
+        JFrame gamePanel = gameResourceController.getjFrame();
+        Player player = gameResourceController.getPlayer();
 
-        jFrame.addKeyListener(new KeyAdapter() {
+        gamePanel.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
                 char charA = e.getKeyChar();
                 if (charA == 'w') {
@@ -108,15 +87,13 @@ public class GameInitializer {
                     R = false;
                     D = false;
                     L = false;
-                    itemFrame.show();
+                    gameResourceController.getItemFrame().show();
                 } else if (charA == 'f') {
                     player.pick();
                 } else if (charA == 'g') {
                     player.drop();
                 } else if (charA == 'e') {
-                    if (totalMap[player.getX()][player.getY()].getIntractable() != null) {
-                        totalMap[player.getX()][player.getY()].getIntractable().interact(gameInitializer);
-                    }
+                    player.interact();
                 }
             }
 
@@ -139,7 +116,7 @@ public class GameInitializer {
             }
         });
 
-        jFrame.addMouseListener(new MouseAdapter() {
+        gamePanel.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 if (e.getButton() == 1) {
                     // left button pressed
@@ -161,7 +138,7 @@ public class GameInitializer {
 
         });
 
-        jFrame.addMouseMotionListener(new MouseMotionAdapter() {
+        gamePanel.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
                 mouseX = e.getX();
                 mouseY = e.getY();
@@ -171,7 +148,7 @@ public class GameInitializer {
 
         // all drivers from here
 
-        playerDriver.schedule(new TimerTask() {
+        gameResourceController.getPlayerDriver().schedule(new TimerTask() {
             @Override
             public void run() {
                 if (U) {
@@ -189,7 +166,7 @@ public class GameInitializer {
             }
         }, 0, 1000 / 35);
 
-        playerShootingDriver.schedule(new TimerTask() {
+        gameResourceController.getPlayerShootingDriver().schedule(new TimerTask() {
             @Override
             public void run() {
                 if (openFire) {
@@ -199,7 +176,7 @@ public class GameInitializer {
         }, 0, 1000 / 20);
 
 
-        effectDriver.schedule(new TimerTask() {
+        gameResourceController.getEffectDriver().schedule(new TimerTask() {
             @Override
             public void run() {
                 int effectSize = effects.size();
@@ -220,26 +197,20 @@ public class GameInitializer {
             }
         }, 0, 1000 / 30);
 
-        graphicDriver.schedule(new TimerTask() {
+        gameResourceController.getGraphicDriver().schedule(new TimerTask() {
             @Override
             public void run() {
                 graphic.drawElements();
             }
         }, 0, 1000 / 40);
 
-        cdTimer.schedule(new TimerTask() {
+        gameResourceController.getCdTimer().schedule(new TimerTask() {
             @Override
             public void run() {
                 abilityCDGraphic.repaint();
             }
-        }, 0, 1000 / 10);
+        }, 0, 1000 / 20);
     }
 
-    public void regenerate() {
-        mazeGenerator.generateRooms();
-        player.teleport(1, 1);
-        // clear all enemy
-        gameController.clearAllEnemies();
-        graphic.drawElements();
-    }
+
 }

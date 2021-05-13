@@ -1,14 +1,14 @@
 package MazeGame;
 
-import MazeGame.weapons.Weapon;
+import MazeGame.Interactions.Intractable;
 
 public class Cell {
 
     private int x; // row number
     private int y; // column number
     private boolean boarder = false;
-    private Creature occupiedCreature = null;
-    private Weapon fallenWeapon = null;
+
+    private Item fallenItem = null;
     private Intractable intractable = null;
 
     public Intractable getIntractable() {
@@ -17,6 +17,9 @@ public class Cell {
 
     public void setIntractable(Intractable intractable) {
         this.intractable = intractable;
+        if(intractable != null) {
+            this.intractable.setLocation(this);
+        }
     }
 
     public void setBoarder(boolean boarder) {
@@ -43,19 +46,11 @@ public class Cell {
         this.y = y;
     }
 
-//    public Creature getOccupiedCreature() {
-//        return occupiedCreature;
-//    }
-//
-//    public void setOccupiedCreature(Creature occupiedCreature) {
-//        this.occupiedCreature = occupiedCreature;
-//    }
-
-    public Weapon getFallenWeapon() {
-        return fallenWeapon;
+    public Item getFallenItem() {
+        return fallenItem;
     }
 
-    public void setFallenWeapon(Weapon fallenWeapon) {
-        this.fallenWeapon = fallenWeapon;
+    public void setFallenItem(Item fallenItem) {
+        this.fallenItem = fallenItem;
     }
 }

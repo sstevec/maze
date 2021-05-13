@@ -1,7 +1,7 @@
 package MazeGame.effect;
 
 import MazeGame.Cell;
-import MazeGame.helper.enemyPositionRecorder;
+import MazeGame.helper.creaturePositionRecorder;
 
 import java.awt.*;
 
@@ -10,9 +10,9 @@ public abstract class Effect {
     protected int y;
     protected boolean dealDamage = false;
     private Color color;
-    protected enemyPositionRecorder[] enemies;
+    protected creaturePositionRecorder[] enemies;
 
-    public Effect(int x, int y, Color color, enemyPositionRecorder[] enemies){
+    public Effect(int x, int y, Color color, creaturePositionRecorder[] enemies){
         this.y = y;
         this.x = x;
         this.color = color;

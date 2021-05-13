@@ -4,7 +4,7 @@ import MazeGame.bullets.Bullet;
 import MazeGame.effect.Effect;
 import MazeGame.helper.Coordinate;
 import MazeGame.helper.Point;
-import MazeGame.helper.enemyPositionRecorder;
+import MazeGame.helper.creaturePositionRecorder;
 import MazeGame.weapons.BrokenGun;
 import MazeGame.weapons.Weapon;
 
@@ -24,8 +24,6 @@ public class Enemy extends Creature implements Runnable {
     private Player playerInfo;
     private Creature betrayedTarget;
     private boolean betraied = false;
-    private Weapon weapon;
-    private enemyPositionRecorder[] enemiesSlot;
     private ArrayList<Integer> avaSlot;
     private int assignPosition;
     private Point[][] map;
@@ -48,27 +46,31 @@ public class Enemy extends Creature implements Runnable {
 
     private ArrayList<Coordinate> moveQueue = new ArrayList<>();
 
-    public Enemy(int roomI, int roomJ, Player player, Room[][] rooms, Cell[][] cells, enemyPositionRecorder[] enemies, ArrayList<Integer> avaSlot) {
+    public Enemy(int roomI, int roomJ, GameResourceController gameResourceController) {
         // in future you should move these property to child class
-        super(100, 100, 0, cells, player);
+        super(100, 100, 0, gameResourceController);
 
         this.iRoom = roomI;
         this.jRoom = roomJ;
-        roomInfo = rooms;
-        mapSize = rooms.length;
-        this.cellInfo = cells;
-        playerInfo = player;
+        roomInfo = gameResourceController.getRooms();
+        mapSize = gameResourceController.getMapSize();
+        playerInfo = gameResourceController.getPlayer();
         this.color = Color.MAGENTA;
         weapon = new BrokenGun(color, getTeamNumber(), effects, this);
-        this.enemiesSlot = enemies;
-        this.avaSlot = avaSlot;
-
+        this.avaSlot = gameResourceController.getEnemySlot();
     }
 
     @Override
     public void run() {
         init();
         initDriver();
+    }
+
+    protected void customInit(){
+        this.enemies = new creaturePositionRecorder[1];
+        enemies[0] = new creaturePositionRecorder();
+        enemies[0].setEnemyReference(gameResourceController.getPlayer());
+        this.friends = gameResourceController.getEnemies();
     }
 
     private void init() {
@@ -89,8 +91,16 @@ public class Enemy extends Creature implements Runnable {
 
         openSupport = new ArrayList<>();
         Random random = new Random();
-        iPos = iRoom * roomSize + random.nextInt(roomSize - 11) + 5;
-        jPos = jRoom * roomSize + random.nextInt(roomSize - 11) + 5;
+
+        // generate enemy position
+        while(true) {
+            iPos = iRoom * roomSize + random.nextInt(roomSize - 11) + 5;
+            jPos = jRoom * roomSize + random.nextInt(roomSize - 11) + 5;
+            if(!cellInfo[iPos][jPos].isBoarder()){
+                break;
+            }
+        }
+
 
         // create a map used to find way
         map = new Point[cellInfo.length][cellInfo.length];
@@ -101,12 +111,47 @@ public class Enemy extends Creature implements Runnable {
             }
         }
 
-        enemiesSlot[assignPosition].setiPos(iPos);
-        enemiesSlot[assignPosition].setjPos(jPos);
-        enemiesSlot[assignPosition].setColor(color);
-        enemiesSlot[assignPosition].setBullets(bullets);
-        enemiesSlot[assignPosition].setEnemyReference(this);
+        friends[assignPosition].setiPos(iPos);
+        friends[assignPosition].setjPos(jPos);
+        friends[assignPosition].setColor(color);
+        friends[assignPosition].setBullets(bullets);
+        friends[assignPosition].setEnemyReference(this);
+
+        generateMoveQueue();
     }
+
+
+    private void initDriver() {
+        // keep the enemy moving
+        moveDriver.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                if (!betraied) {
+                    // I'm a normal enemy :)
+                    // check if i find the player, if not, find a path to the player
+                    move();
+                }
+            }
+        }, 0, 1000 / moveSpeed);
+
+        shotDriver.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                ArrayList<Bullet> tempBullet;
+                if (betraied) {
+                    // stop moving and shot towers another enemy
+                    // check if have target, if not find one
+                    findEnemy();
+                    tryToShot(betrayedTarget);
+                } else {
+                    // I'm a normal enemy :)
+                    // check if i can shot anyone
+                    tryToShot(playerInfo);
+                }
+            }
+        }, 0, 1000 / attackRate);
+    }
+
 
     private void move() {
         mapUpdateCounter++;
@@ -115,11 +160,11 @@ public class Enemy extends Creature implements Runnable {
             mapUpdateCounter = 0;
         }
 
-        int playerRoomI = playerInfo.getRoomI();
-        int playerRoomJ = playerInfo.getRoomJ();
+        int iDest = playerInfo.getiPos() - iPos;
+        int jDest = playerInfo.getjPos() - jPos;
 
-        if (iRoom == playerRoomI && jRoom == playerRoomJ) {
-            // in the same room
+        if (Math.sqrt(iDest*iDest + jDest*jDest) <= 5) {
+            // really close
             synchronized (moveQueue) {
                 moveQueue.clear();
             }
@@ -155,8 +200,8 @@ public class Enemy extends Creature implements Runnable {
                     jRoom = jPos / roomSize;
 
                     // update graphic position
-                    enemiesSlot[assignPosition].setiPos(iPos);
-                    enemiesSlot[assignPosition].setjPos(jPos);
+                    friends[assignPosition].setiPos(iPos);
+                    friends[assignPosition].setjPos(jPos);
                 }
             }
         }
@@ -184,18 +229,16 @@ public class Enemy extends Creature implements Runnable {
         }
     }
 
-    private ArrayList<Bullet> tryToShot(Creature target) {
+    private void tryToShot(Creature target) {
         if (target == null) {
-            return null;
+            return;
         }
-        int targetRoomI = target.iPos / roomSize;
-        int targetRoomJ = target.jPos / roomSize;
+        int iDest = playerInfo.getiPos() - iPos;
+        int jDest = playerInfo.getjPos() - jPos;
 
-        if (iRoom == targetRoomI && jRoom == targetRoomJ) {
+        if (Math.sqrt(iDest*iDest + jDest*jDest) <= 8) {
             // in the same room
-            return weapon.CheckFireStatus(jPos * cellWidth, iPos * cellWidth, target.jPos * cellWidth, target.iPos * cellWidth);
-        } else {
-            return null;
+            weapon.CheckFireStatus(jPos * cellWidth, iPos * cellWidth, target.jPos * cellWidth, target.iPos * cellWidth);
         }
     }
 
@@ -219,26 +262,30 @@ public class Enemy extends Creature implements Runnable {
                 iRoom = iPos / roomSize;
                 jRoom = jPos / roomSize;
 
-                enemiesSlot[assignPosition].setiPos(iPos);
-                enemiesSlot[assignPosition].setjPos(jPos);
+                friends[assignPosition].setiPos(iPos);
+                friends[assignPosition].setjPos(jPos);
             }
         }
     }
 
     @Override
-    public void dieEffect() {
+    public void dieClear() {
         moveDriver.cancel();
         shotDriver.cancel();
-        enemiesSlot[assignPosition].setiPos(-1);
-        enemiesSlot[assignPosition].setjPos(-1);
-        enemiesSlot[assignPosition].setColor(null);
-        enemiesSlot[assignPosition].setEnemyReference(null);
-        enemiesSlot[assignPosition].setBullets(null);
+        friends[assignPosition].setiPos(-1);
+        friends[assignPosition].setjPos(-1);
+        friends[assignPosition].setColor(null);
+        friends[assignPosition].setEnemyReference(null);
+        friends[assignPosition].setBullets(null);
         synchronized (avaSlot) {
             avaSlot.add(assignPosition);
         }
 
 
+    }
+
+    @Override
+    public void dieEffect() {
     }
 
     public void betray(int teamNumber) {
@@ -247,35 +294,14 @@ public class Enemy extends Creature implements Runnable {
         setTeamNumber(teamNumber);
         weapon.setColor(color);
         weapon.setBelongTeam(teamNumber);
+        enemies = friends;
 
         synchronized (moveQueue) {
             moveQueue.clear();
         }
-        enemiesSlot[assignPosition].setColor(color);
+        friends[assignPosition].setColor(color);
 
-    }
-
-    private void betrayedFire() {
-        if (betrayedTarget == null || betrayedTarget.getCurrentHealth() <= 0 || betrayedTarget.getTeamNumber() == getTeamNumber()) {
-            betrayedTarget = null;
-            findEnemy();
-        }
-    }
-
-    private void findEnemy() {
-        // change to enemy
-        for (enemyPositionRecorder newEnemy: enemiesSlot) {
-            Creature creature = newEnemy.getEnemyReference();
-            if(creature != null){
-                int iDis = creature.iPos - iPos;
-                int jDis = creature.jPos - jPos;
-                if(Math.sqrt(iDis * iDis + jDis * jDis) < 10){
-                    betrayedTarget = creature;
-                    return;
-                }
-            }
-        }
-        // can not find enemy, kill itself
+        // betrayed target will kill itself after 10s
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -285,47 +311,26 @@ public class Enemy extends Creature implements Runnable {
         }, 10000);
     }
 
-    private void initDriver() {
-        // keep the enemy moving
-        moveDriver.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                if (currentHealth <= 0) {
-                    die();
-                }
-
-                if (!betraied) {
-                    // I'm a normal enemy :)
-                    // check if i find the player, if not, find a path to the player
-                    move();
-                }
-            }
-        }, 0, 1000 / moveSpeed);
-
-        shotDriver.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                ArrayList<Bullet> tempBullet;
-                if (betraied) {
-                    // stop moving and shot towers another enemy
-                    // check if have target, if not find one
-                    betrayedFire();
-                    tempBullet = tryToShot(betrayedTarget);
-                } else {
-                    // I'm a normal enemy :)
-                    // check if i can shot anyone
-                    tempBullet = tryToShot(playerInfo);
-                }
-
-
-                // make the enemy move
-
-                if (tempBullet != null) {
-                    addBullets(tempBullet);
+    private void findEnemy() {
+        betrayedTarget = null;
+        double shortestDist = 10000;
+        // change to enemy
+        for (creaturePositionRecorder newEnemy: enemies) {
+            Creature creature = newEnemy.getEnemyReference();
+            if(creature != null){
+                int iDis = creature.iPos - iPos;
+                int jDis = creature.jPos - jPos;
+                double dist = Math.sqrt(iDis * iDis + jDis * jDis);
+                if(dist < shortestDist){
+                    betrayedTarget = creature;
+                    shortestDist = dist;
                 }
             }
-        }, 0, 1000 / attackRate);
+        }
+
     }
+
+
 
 
     private void generateMoveQueue() {

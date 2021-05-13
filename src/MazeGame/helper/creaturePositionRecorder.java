@@ -7,14 +7,14 @@ import MazeGame.bullets.Bullet;
 import java.awt.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class enemyPositionRecorder {
+public class creaturePositionRecorder {
     private int iPos;
     private int jPos;
     private Color color;
     private bulletPositionRecorder[] bullets;
     private Creature enemyReference;
 
-    public enemyPositionRecorder(){
+    public creaturePositionRecorder(){
         iPos = -1;
         jPos = -1;
         enemyReference = null;

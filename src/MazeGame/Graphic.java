@@ -4,7 +4,7 @@ import MazeGame.bullets.Bullet;
 import MazeGame.effect.Effect;
 import MazeGame.effect.Explosion;
 import MazeGame.helper.bulletPositionRecorder;
-import MazeGame.helper.enemyPositionRecorder;
+import MazeGame.helper.creaturePositionRecorder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,19 +15,19 @@ public class Graphic extends JPanel {
     private int xPos;
     private int yPos;
     private Cell[][] totalMap;
-    private int mapSize;
+    private int totalMapSize;
     private Player playerInfo;
-    private enemyPositionRecorder[] enemies;
+    private creaturePositionRecorder[] enemies;
     private CopyOnWriteArrayList<Effect> effects;
     private Font itemFont = new Font("Cosmic", Font.BOLD, 12);
 
-    Graphic(Cell[][] totalMap, Player player, enemyPositionRecorder[] enemies, CopyOnWriteArrayList<Effect> effects) {
+    Graphic(GameResourceController gameResourceController) {
         this.setBounds(0, 0, 1215, 825);
-        this.totalMap = totalMap;
-        mapSize = totalMap.length;
-        this.playerInfo = player;
-        this.enemies = enemies;
-        this.effects = effects;
+        this.totalMap = gameResourceController.getTotalMap();
+        totalMapSize = gameResourceController.getTotalMapSize();
+        this.playerInfo = gameResourceController.getPlayer();
+        this.enemies = gameResourceController.getEnemies();
+        this.effects = gameResourceController.getEffects();
     }
 
 
@@ -48,9 +48,9 @@ public class Graphic extends JPanel {
             startX = 0;
             endX = 54;
         }
-        if (endX >= mapSize) {
-            endX = mapSize - 1;
-            startX = mapSize - 55;
+        if (endX >= totalMapSize) {
+            endX = totalMapSize - 1;
+            startX = totalMapSize - 55;
         }
 
         int startY = yPos - 40;
@@ -59,9 +59,9 @@ public class Graphic extends JPanel {
             startY = 0;
             endY = 80;
         }
-        if (endY >= mapSize) {
-            endY = mapSize - 1;
-            startY = mapSize - 81;
+        if (endY >= totalMapSize) {
+            endY = totalMapSize - 1;
+            startY = totalMapSize - 81;
         }
 
         int xLength = endX - startX;
@@ -86,14 +86,14 @@ public class Graphic extends JPanel {
 
         for (int i = 0; i <= xLength; i++) {
             for (int j = 0; j <= yLength; j++) {
-                if (totalMap[startX + i][startY + j].getFallenWeapon() != null) {
+                if (totalMap[startX + i][startY + j].getFallenItem() != null) {
                     graphics.setColor(Color.BLUE);
-                    graphics.drawString("| " + totalMap[startX + i][startY + j].getFallenWeapon().getName() + " |", j * 15 - 5, i * 15 + 15);
+                    graphics.drawString("| " + totalMap[startX + i][startY + j].getFallenItem().getName() + " |", j * 15 - 5, i * 15 + 15);
                 }
             }
         }
 
-        for (enemyPositionRecorder temp : enemies
+        for (creaturePositionRecorder temp : enemies
         ) {
             Creature creature = temp.getEnemyReference();
             if(creature == null){
@@ -103,6 +103,8 @@ public class Graphic extends JPanel {
             int jPos= temp.getjPos();
 
             graphics.setColor(temp.getColor());
+            graphics.drawString(creature.getCurrentHealth() + " / " + creature.getMaxHealth(), (jPos - startY) * 15 - 15, (iPos - startX) * 15 - 5);
+
             graphics.fillRect( (jPos - startY) * 15,  (iPos - startX) * 15, 15, 15);
 
             bulletPositionRecorder[] bullets = creature.getBullets();
@@ -124,9 +126,6 @@ public class Graphic extends JPanel {
             }
         }
 
-//        graphics.setColor(Color.lightGray);
-//        graphics.fillRect(0, (endX + 1) * 15, 1215, 825 - (endX + 1) * 15);
-//        graphics.fillRect((endY + 1) * 15, 0, 1215 - (endY + 1) * 15, 825);
 
         graphics.setColor(Color.BLACK);
         graphics.drawString(playerInfo.getCurrentHealth() + " / " + playerInfo.getMaxHealth(), (yPos - startY) * 15 - 15, (xPos - startX) * 15 - 5);

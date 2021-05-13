@@ -5,13 +5,31 @@ public class Point {
     private boolean isBound = false;
     private boolean isOpen = false;
     private boolean isClosed = false;
-
+    private boolean isStart = false;
+    private boolean isEnd = false;
     private int parentI = -1;
     private int parentJ = -1;
     private double estimateWeight = -1;
     private int pathWeight = -1;
+    private boolean isWay = false;
+    private boolean isInWallList = false;
+    private int comeDir = -1;
 
+    public int getComeDir() {
+        return comeDir;
+    }
 
+    public void setComeDir(int comeDir) {
+        this.comeDir = comeDir;
+    }
+
+    public boolean isInWallList() {
+        return isInWallList;
+    }
+
+    public void setInWallList(boolean inWallList) {
+        isInWallList = inWallList;
+    }
 
     public boolean isWall() {
         return isWall;
@@ -50,7 +68,21 @@ public class Point {
         isOpen = !closed;
     }
 
+    public boolean isStart() {
+        return isStart;
+    }
 
+    public void setStart(boolean start) {
+        isStart = start;
+    }
+
+    public boolean isEnd() {
+        return isEnd;
+    }
+
+    public void setEnd(boolean end) {
+        isEnd = end;
+    }
 
     public int getParentI() {
         return parentI;
@@ -84,12 +116,19 @@ public class Point {
         this.pathWeight = pathWeight;
     }
 
+    public boolean isWay() {
+        return isWay;
+    }
 
+    public void setWay(boolean way) {
+        isWay = way;
+    }
 
     public void clear(){
         if(!isBound){
             isOpen = false;
             isClosed = false;
+            isWay = false;
             parentI = -1;
             parentJ = -1;
             estimateWeight = -1;

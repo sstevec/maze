@@ -1,7 +1,8 @@
 package MazeGame.Interactions;
 
+import MazeGame.Cell;
 import MazeGame.GameInitializer;
-import MazeGame.Intractable;
+import MazeGame.GameResourceController;
 
 import java.awt.*;
 
@@ -11,7 +12,7 @@ public class Portal extends Intractable {
         super(Color.YELLOW);
     }
     @Override
-    public void interact(GameInitializer gameInitializer) {
-        gameInitializer.regenerate();
+    public void interact(GameResourceController gameResourceController) {
+        gameResourceController.getGameController().regenerate();
     }
 }

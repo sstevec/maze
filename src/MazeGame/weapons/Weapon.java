@@ -1,34 +1,41 @@
 package MazeGame.weapons;
 
 import MazeGame.Creature;
-import MazeGame.bullets.Bullet;
 import MazeGame.effect.Effect;
+import MazeGame.Item;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public abstract class Weapon {
-    protected String name = "weapon";
+import static MazeGame.Info.WEAPON_KIND;
+
+public abstract class Weapon extends Item {
+
     private double fireRate = 1;
+    private int attackSpeed = 0;
     private double abilityCD = 5;
+    private int extraCoolDown = 0;
     protected int bulletSpeed = 1;
     private int currentTime;
     private boolean allowFire = true;
     private boolean allowCast = true;
+
     protected Color color;
+    protected int originalDamage;
     protected int damage;
     protected int belongTeam;
     protected CopyOnWriteArrayList<Effect> effects;
     protected Creature user;
 
-    public Weapon(String name, double fireRate, int bulletSpeed, Color color, int damage, int belongTeam, double abilityCD, CopyOnWriteArrayList<Effect> effects, Creature user){
-        this.name = name;
+    public Weapon(String name, double fireRate, int bulletSpeed, Color color, int damage,
+                  int belongTeam, double abilityCD, CopyOnWriteArrayList<Effect> effects, Creature user){
+        super(name, WEAPON_KIND);
         this.fireRate = fireRate;
         this.bulletSpeed = bulletSpeed;
         this.color = color;
+        this.originalDamage = damage;
         this.damage = damage;
         this.belongTeam = belongTeam;
         this.abilityCD = abilityCD;
@@ -36,7 +43,7 @@ public abstract class Weapon {
         this.user = user;
     }
 
-    public ArrayList<Bullet> CheckFireStatus(double xPos, double yPos, double xDest, double yDest){
+    public void CheckFireStatus(double xPos, double yPos, double xDest, double yDest){
         if(allowFire){
             allowFire = false;
             Timer timer = new Timer();
@@ -45,13 +52,12 @@ public abstract class Weapon {
                 public void run() {
                     allowFire = true;
                 }
-            }, (long) (1000.0/fireRate));
-            return fire(xPos,yPos, xDest, yDest);
+            }, (long) (1000.0/(fireRate + attackSpeed/100.0 * fireRate)));
+            fire(xPos,yPos, xDest, yDest);
         }
-        return null;
     }
 
-    public ArrayList<Bullet> CheckAbilityStatus(int xPos, int yPos, int xDest, int yDest){
+    public void CheckAbilityStatus(int xPos, int yPos, int xDest, int yDest){
         if(allowCast){
             allowCast = false;
             currentTime = 0;
@@ -59,28 +65,24 @@ public abstract class Weapon {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    if(currentTime >= abilityCD*1000) {
+                    if(currentTime >= abilityCD*1000*(100.0/(100+extraCoolDown))) {
                         allowCast = true;
                         this.cancel();
                     }
                     currentTime +=100;
                 }
             }, 0,1000/10);
-            return cast(xPos,yPos, xDest, yDest);
+            cast(xPos,yPos, xDest, yDest);
         }
-        return null;
     }
 
-    protected abstract ArrayList<Bullet> fire(double x, double y, double xDest, double yDest);
+    abstract void fire(double x, double y, double xDest, double yDest);
 
-    protected abstract ArrayList<Bullet> cast(int x, int y, int xDest, int yDest);
+    abstract void cast(int x, int y, int xDest, int yDest);
 
-    public String getName() {
-        return name;
-    }
 
     public double getFireRate() {
-        return fireRate;
+        return fireRate + attackSpeed/100.0 * fireRate;
     }
 
     public int getBulletSpeed() {
@@ -99,11 +101,32 @@ public abstract class Weapon {
         this.belongTeam = belongTeam;
     }
 
+    public void setEffects(CopyOnWriteArrayList<Effect> effects) {
+        this.effects = effects;
+    }
+
+    public void setUser(Creature user) {
+        this.user = user;
+    }
+
     public double getCD(){
         if(allowCast){
             return 0.0;
         }else{
-            return (abilityCD*1000 - currentTime)/(abilityCD*1000);
+            double cd = abilityCD*1000*(100.0/(100+extraCoolDown));
+            return (cd - currentTime)/cd;
         }
+    }
+
+    public void upgradeDamage(int amount){
+        damage += amount;
+    }
+
+    public void upgradeAttackSpeed(int amount){
+        attackSpeed += amount;
+    }
+
+    public void upgradeExtraCD(int amount){
+        extraCoolDown += amount;
     }
 }

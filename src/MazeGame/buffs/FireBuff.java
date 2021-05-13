@@ -16,6 +16,7 @@ public class FireBuff extends Buff {
         startTimer();
     }
 
+    // this is a debuff cause target lose health every second
     @Override
     void affect(Creature target) {
        timer.schedule(new TimerTask() {
@@ -23,7 +24,7 @@ public class FireBuff extends Buff {
            public void run() {
                target.takeDamage(damage);
            }
-       },0,100);
+       },0,1000);
     }
 
     @Override

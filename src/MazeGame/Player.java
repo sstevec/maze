@@ -1,24 +1,22 @@
 package MazeGame;
 
-import MazeGame.bullets.Bullet;
 import MazeGame.effect.Effect;
-import MazeGame.helper.enemyPositionRecorder;
+import MazeGame.equipment.Equipment;
+import MazeGame.helper.creaturePositionRecorder;
 import MazeGame.weapons.*;
 
 import java.awt.*;
-import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static MazeGame.Info.roomSize;
-import static MazeGame.Info.traceRange;
+import static MazeGame.Info.*;
 
 public class Player extends Creature {
 
     // position
-    private int x; // row number
-    private int y; // column number
+    private int x; // cell level row number
+    private int y; // cell level column number
     private int roomI = 0;
     private int roomJ = 0;
 
@@ -28,43 +26,55 @@ public class Player extends Creature {
     private int totalMapSize;
     private Room[][] rooms;
     private CopyOnWriteArrayList<Effect> effects;
-    private Weapon weapon;
-    private enemyPositionRecorder[] enemies;
     private Random random = new Random();
     private ConcurrentHashMap<String,Integer> movePriorityList = new ConcurrentHashMap<>();
+    private GameInitializer gameInitializer;
 
 
-    Player(int totalMapSize, int x, int y, Cell[][] totalMap, Room[][] rooms, CopyOnWriteArrayList<Effect> effects, enemyPositionRecorder[] enemies) {
-        super(100, 100, 1, totalMap, enemies);
+    Player(int x, int y, GameResourceController gameResourceController) {
+        super(100, 100, 1, gameResourceController);
         this.x = x;
         this.y = y;
         iPos = x;
         jPos = y;
-        this.totalMapSize = totalMapSize;
+        this.totalMapSize = gameResourceController.getTotalMapSize();
         this.color = Color.CYAN;
-        this.effects = effects;
-        weapon = new Rocket(color, getTeamNumber(), effects, this);
-        this.enemies = enemies;
-        this.rooms = rooms;
+        this.effects = gameResourceController.getEffects();
+        weapon = new MindControlGun(color, getTeamNumber(), effects, this);
+        this.rooms = gameResourceController.getRooms();
         this.mapSize = rooms.length;
+        this.gameInitializer = gameResourceController.getGameInitializer();
     }
 
+    @Override
+    protected void customInit() {
+        this.enemies = gameResourceController.getEnemies();
+        this.friends = null;
+    }
+
+    /***
+     *
+     * @param xDest
+     * @param yDest
+     *
+     * Note here xDest and yDest are relative position of mouse to the current game board
+     * Thus, to calculate the definite position, we need to plus the board distance
+     */
+
     public void fire(int xDest, int yDest) {
-        int yBorder = x - 27 > 0 ? x - 27 : 0;
-        int xBorder = y - 40 > 0 ? y - 40 : 0;
-        ArrayList<Bullet> tempList = weapon.CheckFireStatus(y * 15 + 1, x * 15 + 1, xDest + xBorder * 15 - 10, yDest + yBorder * 15 - 35);
-        if(tempList != null){
-            addBullets(tempList);
-        }
+        int yBorder = Math.max(x - 27, 0);
+        int xBorder = Math.max(y - 40, 0);
+        yBorder = Math.min(yBorder, roomSize*mapSize - 55);
+        xBorder = Math.min(xBorder, roomSize*mapSize - 81);
+        weapon.CheckFireStatus(y * Info.cellWidth + Info.cellWidth/2, x * Info.cellWidth + Info.cellWidth/2, xDest + xBorder * Info.cellWidth - 10, yDest + yBorder * Info.cellWidth - 35);
     }
 
     public void castAbility(int xDest, int yDest) {
-        int yBorder = x - 27 > 0 ? x - 27 : 0;
-        int xBorder = y - 40 > 0 ? y - 40 : 0;
-        ArrayList<Bullet> tempList = weapon.CheckAbilityStatus(y * 15 + 1, x * 15 + 1, xDest + xBorder * 15 - 10, yDest + yBorder * 15 - 35);
-        if(tempList != null){
-            addBullets(tempList);
-        }
+        int yBorder = Math.max(x - 27, 0);
+        int xBorder = Math.max(y - 40, 0);
+        yBorder = Math.min(yBorder, roomSize*mapSize - 55);
+        xBorder = Math.min(xBorder, roomSize*mapSize - 81);
+        weapon.CheckAbilityStatus(y * Info.cellWidth + Info.cellWidth/2, x * Info.cellWidth + Info.cellWidth/2, xDest + xBorder * Info.cellWidth - 10, yDest + yBorder * Info.cellWidth - 35);
     }
 
     public void move(String dir) {
@@ -109,30 +119,75 @@ public class Player extends Creature {
 
 
     @Override
+    public void dieClear() {
+        gameResourceController.getGameController().gameOver();
+    }
+
+    @Override
     public void dieEffect() {
 
     }
 
     public void pick() {
-        if (cellInfo[x][y].getFallenWeapon() != null) {
-            Weapon tempWeapon = null;
-            if (weapon.getDamage() != 0) {
-                // means player equipped with a weapon
-                tempWeapon = weapon;
+        for(int i = -3; i<4; i++){
+            for(int j = -3; j<4; j++){
+                if(x+i < cellInfo.length && x+i >=0 && y+j < cellInfo.length && y+j >=0){
+                    Item fallenItem = cellInfo[x+i][y+j].getFallenItem();
+                    if ( fallenItem != null) {
+                        // there is an item
+                        if(fallenItem.getKind() == WEAPON_KIND){
+                            // it is a weapon
+                            Weapon tempWeapon = null;
+                            if (weapon.getDamage() != 0) {
+                                // means player equipped with a weapon
+                                tempWeapon = weapon;
+                            }
+                            weapon = (Weapon) fallenItem;
+                            weapon.setColor(color);
+                            weapon.setBelongTeam(getTeamNumber());
+                            weapon.setUser(this);
+                            weapon.setEffects(effects);
+                            weapon.upgradeAttackSpeed(extraAttackSpeed);
+                            weapon.upgradeDamage(extraDamage);
+                            weapon.upgradeExtraCD(extraCDReduce);
+                            cellInfo[x+i][y+j].setFallenItem(tempWeapon);
+                            return;
+                        } else if(fallenItem.getKind() == EQUIPMENT_KIND){
+                            // it is a equipment
+                            Equipment fallenEquipment = (Equipment)fallenItem;
+                            fallenEquipment.equip(this);
+                            cellInfo[x+i][y+j].setFallenItem(null);
+                            return;
+                        }
+
+                    }
+                }
+
             }
-            weapon = cellInfo[x][y].getFallenWeapon();
-            weapon.setColor(color);
-            weapon.setBelongTeam(getTeamNumber());
-            cellInfo[x][y].setFallenWeapon(tempWeapon);
         }
+
     }
 
     public void drop() {
         if (weapon.getDamage() != 0) {
             // means player equipped with a weapon
-            if (cellInfo[x][y].getFallenWeapon() == null) {
-                cellInfo[x][y].setFallenWeapon(weapon);
+            if (cellInfo[x][y].getFallenItem() == null) {
+                cellInfo[x][y].setFallenItem(weapon);
                 weapon = new NoWeapon(Color.CYAN, getTeamNumber(), effects, this);
+            }
+        }
+    }
+
+    public void interact(){
+        for(int i = -3; i<4; i++){
+            for(int j = -3; j<4; j++){
+                if(x+i < cellInfo.length && x+i >=0 && y+j < cellInfo.length && y+j >=0){
+                    if (cellInfo[x+i][y+j].getIntractable() != null) {
+                        cellInfo[x+i][y+j].getIntractable().interact(gameResourceController);
+                        return;
+                    }
+                }
+
             }
         }
     }
