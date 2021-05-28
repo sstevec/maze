@@ -1,14 +1,23 @@
 package MazeGame;
 
+import MazeGame.creature.Player;
 import MazeGame.effect.Effect;
-import MazeGame.helper.creaturePositionRecorder;
+import MazeGame.frame.GameInitializer;
+import MazeGame.frame.ItemFrame;
+import MazeGame.frame.StartMenu;
+import MazeGame.graphic.AbilityCDGraphic;
+import MazeGame.graphic.Graphic;
+import MazeGame.helper.CreaturePositionRecorder;
+import MazeGame.map.Cell;
+import MazeGame.map.MazeGenerator;
+import MazeGame.map.Room;
 
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static MazeGame.Info.roomSize;
+import static MazeGame.helper.Info.roomSize;
 
 public class GameResourceController {
     private int mapSize = 10;
@@ -31,7 +40,7 @@ public class GameResourceController {
 
     private Timer graphicDriver = new Timer();
 
-    private creaturePositionRecorder[] creatures;
+    private CreaturePositionRecorder[] creatures;
     private ArrayList<Integer> creatureSlot = new ArrayList<>();
 
     private CopyOnWriteArrayList<Effect> effects = new CopyOnWriteArrayList<>();
@@ -43,7 +52,7 @@ public class GameResourceController {
 
 
 
-    GameResourceController(GameInitializer initializer, StartMenu s, int mapSize){
+    public GameResourceController(GameInitializer initializer, StartMenu s, int mapSize){
         this.startMenu = s;
         this.gameInitializer = initializer;
         this.mapSize = mapSize;
@@ -58,20 +67,20 @@ public class GameResourceController {
     }
 
     public void initCreatureSlot(int slotSize){
-        creatures =  new creaturePositionRecorder[slotSize];
+        creatures =  new CreaturePositionRecorder[slotSize];
         for(int i = 1; i<slotSize; i++){
-            creatures[i] = new creaturePositionRecorder();
+            creatures[i] = new CreaturePositionRecorder();
             creatureSlot.add(i);
         }
     }
 
     public void initPlayer(int x, int y){
         player = new Player( x, y, this);
-        creatures[0] = new creaturePositionRecorder();
-        creatures[0].setiPos(player.iPos);
-        creatures[0].setjPos(player.jPos);
-        creatures[0].setColor(player.color);
-        creatures[0].setBullets(player.bullets);
+        creatures[0] = new CreaturePositionRecorder();
+        creatures[0].setiPos(player.getiPos());
+        creatures[0].setjPos(player.getjPos());
+        creatures[0].setColor(player.getColor());
+        creatures[0].setBullets(player.getBullets());
         creatures[0].setCreatureReference(player);
     }
 
@@ -198,7 +207,7 @@ public class GameResourceController {
         this.graphicDriver = graphicDriver;
     }
 
-    public creaturePositionRecorder[] getCreatures() {
+    public CreaturePositionRecorder[] getCreatures() {
         return creatures;
     }
 

@@ -1,15 +1,17 @@
 package MazeGame.weapons;
 
-import MazeGame.Creature;
+import MazeGame.creature.Creature;
 import MazeGame.effect.Effect;
 import MazeGame.Item;
+import MazeGame.equipment.weaponComponent.WeaponComponent;
+import MazeGame.helper.FireData;
 
 import java.awt.*;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static MazeGame.Info.WEAPON_KIND;
+import static MazeGame.helper.Info.WEAPON_KIND;
 
 public abstract class Weapon extends Item {
 
@@ -30,8 +32,9 @@ public abstract class Weapon extends Item {
     protected Creature user;
 
     public Weapon(String name, double fireRate, int bulletSpeed, Color color, int damage,
-                  int belongTeam, double abilityCD, CopyOnWriteArrayList<Effect> effects, Creature user){
-        super(name, WEAPON_KIND);
+                  int belongTeam, double abilityCD, CopyOnWriteArrayList<Effect> effects, Creature user) {
+        super(WEAPON_KIND);
+        this.name = name;
         this.fireRate = fireRate;
         this.bulletSpeed = bulletSpeed;
         this.color = color;
@@ -43,8 +46,8 @@ public abstract class Weapon extends Item {
         this.user = user;
     }
 
-    public void CheckFireStatus(double xPos, double yPos, double xDest, double yDest){
-        if(allowFire){
+    public void CheckFireStatus(double xPos, double yPos, double xDest, double yDest) {
+        if (allowFire) {
             allowFire = false;
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
@@ -52,37 +55,56 @@ public abstract class Weapon extends Item {
                 public void run() {
                     allowFire = true;
                 }
-            }, (long) (1000.0/(fireRate + attackSpeed/100.0 * fireRate)));
-            fire(xPos,yPos, xDest, yDest);
+            }, (long) (1000.0 / (fireRate + attackSpeed / 100.0 * fireRate)));
+
+            FireData fireData = new FireData(xPos, yPos, xDest, yDest);
+
+            for(WeaponComponent wc: user.getPreProcessComponent()){
+                if(wc != null) {
+                    wc.processFireData(fireData);
+                }
+            }
+            fire(fireData);
+            for(WeaponComponent wc: user.getPostProcessComponent()){
+                if(wc != null) {
+                    wc.processFireData(fireData);
+                }
+            }
+
+            user.addBullets(fireData.getBullets());
         }
     }
 
-    public void CheckAbilityStatus(int xPos, int yPos, int xDest, int yDest){
-        if(allowCast){
+    public void CheckAbilityStatus(int xPos, int yPos, int xDest, int yDest) {
+        if (allowCast) {
             allowCast = false;
             currentTime = 0;
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    if(currentTime >= abilityCD*1000*(100.0/(100+extraCoolDown))) {
+                    if (currentTime >= abilityCD * 1000 * (100.0 / (100 + extraCoolDown))) {
                         allowCast = true;
                         this.cancel();
                     }
-                    currentTime +=100;
+                    currentTime += 100;
                 }
-            }, 0,1000/10);
-            cast(xPos,yPos, xDest, yDest);
+            }, 0, 1000 / 10);
+            cast(xPos, yPos, xDest, yDest);
         }
     }
 
-    abstract void fire(double x, double y, double xDest, double yDest);
+    public void pickUp(Creature creature){
+
+    }
+
+    abstract void fire(FireData fireData);
 
     abstract void cast(int x, int y, int xDest, int yDest);
 
 
     public double getFireRate() {
-        return fireRate + attackSpeed/100.0 * fireRate;
+        return fireRate + attackSpeed / 100.0 * fireRate;
     }
 
     public int getBulletSpeed() {
@@ -109,24 +131,24 @@ public abstract class Weapon extends Item {
         this.user = user;
     }
 
-    public double getCD(){
-        if(allowCast){
+    public double getCD() {
+        if (allowCast) {
             return 0.0;
-        }else{
-            double cd = abilityCD*1000*(100.0/(100+extraCoolDown));
-            return Math.max((cd - currentTime)/cd, 0);
+        } else {
+            double cd = abilityCD * 1000 * (100.0 / (100 + extraCoolDown));
+            return Math.max((cd - currentTime) / cd, 0);
         }
     }
 
-    public void upgradeDamage(int amount){
+    public void upgradeDamage(int amount) {
         damage += amount;
     }
 
-    public void upgradeAttackSpeed(int amount){
+    public void upgradeAttackSpeed(int amount) {
         attackSpeed += amount;
     }
 
-    public void upgradeExtraCD(int amount){
+    public void upgradeExtraCD(int amount) {
         extraCoolDown += amount;
     }
 }

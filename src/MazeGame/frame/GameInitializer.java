@@ -1,13 +1,18 @@
-package MazeGame;
+package MazeGame.frame;
 
+import MazeGame.map.Cell;
+import MazeGame.GameResourceController;
+import MazeGame.creature.Player;
 import MazeGame.effect.Effect;
+import MazeGame.graphic.AbilityCDGraphic;
+import MazeGame.graphic.Graphic;
 
 import javax.swing.*;
 import java.awt.event.*;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static MazeGame.Info.roomSize;
+import static MazeGame.helper.Info.roomSize;
 
 public class GameInitializer {
 

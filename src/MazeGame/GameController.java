@@ -1,7 +1,9 @@
 package MazeGame;
 
-import MazeGame.helper.creaturePositionRecorder;
-import jdk.nashorn.internal.runtime.Context;
+import MazeGame.creature.Enemy;
+import MazeGame.creature.Player;
+import MazeGame.helper.CreaturePositionRecorder;
+import MazeGame.map.Room;
 
 import java.util.ArrayList;
 import java.util.Timer;
@@ -10,7 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static MazeGame.Info.roomSize;
+import static MazeGame.helper.Info.roomSize;
 
 public class GameController {
 
@@ -20,7 +22,7 @@ public class GameController {
 
     private Room[][] rooms;
     private Player player;
-    private creaturePositionRecorder[] creatures ;
+    private CreaturePositionRecorder[] creatures ;
     private ArrayList<Integer> creatureSlot;
     private GameResourceController gameResourceController;
 

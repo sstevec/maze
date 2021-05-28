@@ -1,4 +1,4 @@
-package MazeGame;
+package MazeGame.map;
 
 import MazeGame.helper.Coordinate;
 import MazeGame.helper.Point;
@@ -7,7 +7,7 @@ import MazeGame.helper.Point;
 import java.util.ArrayList;
 import java.util.Random;
 
-import static MazeGame.Info.roomSize;
+import static MazeGame.helper.Info.roomSize;
 
 public class MazeGenerator {
 
@@ -17,7 +17,7 @@ public class MazeGenerator {
     private Random random = new Random();
     private Point[][] map;
 
-    MazeGenerator(int mapSize) {
+    public MazeGenerator(int mapSize) {
         this.mapSize = mapSize;
         rooms = new Room[mapSize][mapSize];
         totalMap = new Cell[mapSize * roomSize][mapSize * roomSize];

@@ -1,16 +1,20 @@
-package MazeGame;
+package MazeGame.creature;
 
+import MazeGame.GameResourceController;
+import MazeGame.Item;
+import MazeGame.map.Room;
 import MazeGame.effect.Effect;
-import MazeGame.equipment.Equipment;
-import MazeGame.helper.creaturePositionRecorder;
+import MazeGame.equipment.boost.Equipment;
+import MazeGame.equipment.weaponComponent.WeaponComponent;
+import MazeGame.frame.GameInitializer;
+import MazeGame.helper.Info;
 import MazeGame.weapons.*;
 
 import java.awt.*;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static MazeGame.Info.*;
+import static MazeGame.helper.Info.*;
 
 public class Player extends Creature {
 
@@ -24,14 +28,13 @@ public class Player extends Creature {
 
     private int mapSize;
     private int totalMapSize;
-    private Room[][] rooms;
-    private CopyOnWriteArrayList<Effect> effects;
-    private Random random = new Random();
-    private ConcurrentHashMap<String,Integer> movePriorityList = new ConcurrentHashMap<>();
-    private GameInitializer gameInitializer;
+    private final Room[][] rooms;
+    private final CopyOnWriteArrayList<Effect> effects;
+    private final Random random = new Random();
+    private final GameInitializer gameInitializer;
 
 
-    Player(int x, int y, GameResourceController gameResourceController) {
+    public Player(int x, int y, GameResourceController gameResourceController) {
         super(100, 100, 1, gameResourceController);
         this.x = x;
         this.y = y;
@@ -62,17 +65,17 @@ public class Player extends Creature {
     public void fire(int xDest, int yDest) {
         int yBorder = Math.max(x - 27, 0);
         int xBorder = Math.max(y - 40, 0);
-        yBorder = Math.min(yBorder, roomSize*mapSize - 55);
-        xBorder = Math.min(xBorder, roomSize*mapSize - 81);
-        weapon.CheckFireStatus(y * Info.cellWidth + Info.cellWidth/2, x * Info.cellWidth + Info.cellWidth/2, xDest + xBorder * Info.cellWidth - 10, yDest + yBorder * Info.cellWidth - 35);
+        yBorder = Math.min(yBorder, roomSize * mapSize - 55);
+        xBorder = Math.min(xBorder, roomSize * mapSize - 81);
+        weapon.CheckFireStatus(y * Info.cellWidth + Info.cellWidth / 2, x * Info.cellWidth + Info.cellWidth / 2, xDest + xBorder * Info.cellWidth - 10, yDest + yBorder * Info.cellWidth - 35);
     }
 
     public void castAbility(int xDest, int yDest) {
         int yBorder = Math.max(x - 27, 0);
         int xBorder = Math.max(y - 40, 0);
-        yBorder = Math.min(yBorder, roomSize*mapSize - 55);
-        xBorder = Math.min(xBorder, roomSize*mapSize - 81);
-        weapon.CheckAbilityStatus(y * Info.cellWidth + Info.cellWidth/2, x * Info.cellWidth + Info.cellWidth/2, xDest + xBorder * Info.cellWidth - 10, yDest + yBorder * Info.cellWidth - 35);
+        yBorder = Math.min(yBorder, roomSize * mapSize - 55);
+        xBorder = Math.min(xBorder, roomSize * mapSize - 81);
+        weapon.CheckAbilityStatus(y * Info.cellWidth + Info.cellWidth / 2, x * Info.cellWidth + Info.cellWidth / 2, xDest + xBorder * Info.cellWidth - 10, yDest + yBorder * Info.cellWidth - 35);
     }
 
     public void move(String dir) {
@@ -101,14 +104,14 @@ public class Player extends Creature {
         }
 
         // check if new position is wall
-        if(cellInfo[newX][newY].isBoarder()){
+        if (cellInfo[newX][newY].isBoarder()) {
             return;
         }
 
         iPos = newX;
         jPos = newY;
-        x =  newX;
-        y =  newY;
+        x = newX;
+        y = newY;
         creatures[0].setiPos(iPos);
         creatures[0].setjPos(jPos);
         roomI = x / roomSize;
@@ -129,13 +132,13 @@ public class Player extends Creature {
     }
 
     public void pick() {
-        for(int i = -3; i<4; i++){
-            for(int j = -3; j<4; j++){
-                if(x+i < cellInfo.length && x+i >=0 && y+j < cellInfo.length && y+j >=0){
-                    Item fallenItem = cellInfo[x+i][y+j].getFallenItem();
-                    if ( fallenItem != null) {
+        for (int i = -3; i < 4; i++) {
+            for (int j = -3; j < 4; j++) {
+                if (x + i < cellInfo.length && x + i >= 0 && y + j < cellInfo.length && y + j >= 0) {
+                    Item fallenItem = cellInfo[x + i][y + j].getFallenItem();
+                    if (fallenItem != null) {
                         // there is an item
-                        if(fallenItem.getKind() == WEAPON_KIND){
+                        if (fallenItem.getKind() == WEAPON_KIND) {
                             // it is a weapon
                             Weapon tempWeapon = null;
                             if (weapon.getDamage() != 0) {
@@ -150,13 +153,18 @@ public class Player extends Creature {
                             weapon.upgradeAttackSpeed(extraAttackSpeed);
                             weapon.upgradeDamage(extraDamage);
                             weapon.upgradeExtraCD(extraCDReduce);
-                            cellInfo[x+i][y+j].setFallenItem(tempWeapon);
+                            cellInfo[x + i][y + j].setFallenItem(tempWeapon);
                             return;
-                        } else if(fallenItem.getKind() == EQUIPMENT_KIND){
+                        } else if (fallenItem.getKind() == BOOST_KIND) {
                             // it is a equipment
-                            Equipment fallenEquipment = (Equipment)fallenItem;
-                            fallenEquipment.equip(this);
-                            cellInfo[x+i][y+j].setFallenItem(null);
+                            Equipment fallenEquipment = (Equipment) fallenItem;
+                            fallenEquipment.pickUp(this);
+                            cellInfo[x + i][y + j].setFallenItem(null);
+                            return;
+                        } else if (fallenItem.getKind() == WEAPON_COMPONENT_KIND) {
+                            WeaponComponent weaponComponent = (WeaponComponent) fallenItem;
+                            weaponComponent.pickUp(this);
+                            cellInfo[x + i][y + j].setFallenItem(null);
                             return;
                         }
 
@@ -178,12 +186,12 @@ public class Player extends Creature {
         }
     }
 
-    public void interact(){
-        for(int i = -3; i<4; i++){
-            for(int j = -3; j<4; j++){
-                if(x+i < cellInfo.length && x+i >=0 && y+j < cellInfo.length && y+j >=0){
-                    if (cellInfo[x+i][y+j].getIntractable() != null) {
-                        cellInfo[x+i][y+j].getIntractable().interact(gameResourceController);
+    public void interact() {
+        for (int i = -3; i < 4; i++) {
+            for (int j = -3; j < 4; j++) {
+                if (x + i < cellInfo.length && x + i >= 0 && y + j < cellInfo.length && y + j >= 0) {
+                    if (cellInfo[x + i][y + j].getIntractable() != null) {
+                        cellInfo[x + i][y + j].getIntractable().interact(gameResourceController);
                         return;
                     }
                 }

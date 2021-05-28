@@ -1,13 +1,10 @@
 package MazeGame.weapons;
 
-import MazeGame.Creature;
-import MazeGame.bullets.Bullet;
-import MazeGame.bullets.NormalBullet;
+import MazeGame.creature.Creature;
 import MazeGame.effect.Effect;
+import MazeGame.helper.FireData;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class NoWeapon extends Weapon {
@@ -18,7 +15,7 @@ public class NoWeapon extends Weapon {
     }
 
     @Override
-    protected void fire(double x, double y, double xDest, double yDest) {
+    protected void fire(FireData fireData) {
     }
 
     @Override

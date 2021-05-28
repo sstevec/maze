@@ -1,4 +1,7 @@
-package MazeGame;
+package MazeGame.graphic;
+
+import MazeGame.GameResourceController;
+import MazeGame.creature.Player;
 
 import javax.swing.*;
 import java.awt.*;
@@ -6,7 +9,7 @@ import java.awt.*;
 public class AbilityCDGraphic extends JPanel {
     private Player player;
 
-    AbilityCDGraphic(GameResourceController gameResourceController){
+    public AbilityCDGraphic(GameResourceController gameResourceController){
         this.player = gameResourceController.getPlayer();
         this.setBounds(1100,700,51,51);
     }

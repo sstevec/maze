@@ -1,7 +1,5 @@
 package MazeGame.Interactions;
 
-import MazeGame.Cell;
-import MazeGame.GameInitializer;
 import MazeGame.GameResourceController;
 
 import java.awt.*;

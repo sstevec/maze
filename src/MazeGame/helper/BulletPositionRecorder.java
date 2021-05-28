@@ -6,14 +6,14 @@ import java.awt.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 
-public class bulletPositionRecorder {
+public class BulletPositionRecorder {
 
     private int iPos;
     private int jPos;
     private Color color;
     private Bullet bulletReference;
 
-    public bulletPositionRecorder(){
+    public BulletPositionRecorder(){
         iPos = -1;
         jPos = -1;
         bulletReference = null;

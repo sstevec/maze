@@ -1,6 +1,5 @@
 package MazeGame.Interactions;
 
-import MazeGame.GameInitializer;
 import MazeGame.GameResourceController;
 import MazeGame.weapons.*;
 

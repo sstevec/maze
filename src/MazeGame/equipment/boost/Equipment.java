@@ -1,9 +1,9 @@
-package MazeGame.equipment;
+package MazeGame.equipment.boost;
 
-import MazeGame.Player;
+import MazeGame.creature.Creature;
 import MazeGame.Item;
 
-import static MazeGame.Info.EQUIPMENT_KIND;
+import static MazeGame.helper.Info.BOOST_KIND;
 
 public abstract class Equipment extends Item {
     private int extraHealth = 0;
@@ -13,8 +13,8 @@ public abstract class Equipment extends Item {
     private int extraAttackSpeed = 0;
     protected int level = 0;
 
-    public Equipment(String name){
-        super(name, EQUIPMENT_KIND);
+    public Equipment(){
+        super(BOOST_KIND);
     }
 
     protected void setAttribute(int extraHealth, int heal, int extraDamage, int extraCDReduce, int extraAttackSpeed){
@@ -45,9 +45,9 @@ public abstract class Equipment extends Item {
         return extraAttackSpeed;
     }
 
-    public abstract void equipEffect(Player p);
+    public abstract void equipEffect(Creature p);
 
-    public void equip(Player player){
+    public void pickUp(Creature player){
         player.updateAttribute(extraHealth, heal, extraDamage, extraCDReduce, extraAttackSpeed);
         equipEffect(player);
     }

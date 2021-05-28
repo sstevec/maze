@@ -1,4 +1,4 @@
-package MazeGame;
+package MazeGame.helper;
 
 public class Info {
     // must be a multiple of 3
@@ -9,7 +9,8 @@ public class Info {
     public final static int traceRange = 5;
 
     public final static int WEAPON_KIND = 1;
-    public final static int EQUIPMENT_KIND = 2;
+    public final static int BOOST_KIND = 2;
+    public final static int WEAPON_COMPONENT_KIND = 3;
 }
 
 

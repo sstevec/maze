@@ -1,18 +1,18 @@
 package MazeGame.Interactions;
 
-import MazeGame.GameInitializer;
 import MazeGame.GameResourceController;
-import MazeGame.equipment.EquipmentFactory;
-import MazeGame.weapons.WeaponFactory;
+import MazeGame.equipment.InventoryFactory;
 
 import java.awt.*;
 
-public class EquipmentChest extends Intractable {
-    private EquipmentFactory equipmentFactory = new EquipmentFactory();
+public class InventoryChest extends Intractable {
+    private InventoryFactory inventoryFactory = new InventoryFactory();
     private int level;
+    private int type;
 
-    public EquipmentChest(int level) {
+    public InventoryChest(int level) {
         super(null);
+        this.type = 0;
         this.level = level;
         if (level == 1) {
             setColor(new Color(79, 72, 72));
@@ -25,11 +25,21 @@ public class EquipmentChest extends Intractable {
         }
     }
 
+    public InventoryChest() {
+        super(new Color(141, 6, 244));
+        this.type = 1;
+    }
+
     @Override
     public void interact(GameResourceController gameResourceController) {
         synchronized (location) {
             location.setIntractable(null);
-            location.setFallenItem(equipmentFactory.randomEquipment(level));
+            if(type == 0) {
+                // boost chest
+                location.setFallenItem(inventoryFactory.randomEquipment(level));
+            } else if (type == 1){
+                location.setFallenItem(inventoryFactory.randomWeaponComponent());
+            }
         }
     }
 }

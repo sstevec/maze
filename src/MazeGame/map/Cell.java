@@ -1,6 +1,7 @@
-package MazeGame;
+package MazeGame.map;
 
 import MazeGame.Interactions.Intractable;
+import MazeGame.Item;
 
 public class Cell {
 

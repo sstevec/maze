@@ -1,16 +1,17 @@
 package MazeGame.weapons;
 
-import MazeGame.Creature;
+import MazeGame.creature.Creature;
 import MazeGame.bullets.Bullet;
 import MazeGame.bullets.ControlBullet;
 import MazeGame.effect.Effect;
 import MazeGame.effect.Explosion;
+import MazeGame.helper.FireData;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static MazeGame.Info.cellWidth;
+import static MazeGame.helper.Info.cellWidth;
 
 public class MindControlGun extends Weapon {
 
@@ -29,14 +30,13 @@ public class MindControlGun extends Weapon {
     }
 
     @Override
-    protected void fire(double x, double y, double xDest, double yDest) {
-        double dist = Math.sqrt((xDest - x) * (xDest - x) + (yDest - y) * (yDest - y));
-        double xDir = (xDest - x) / dist;
-        double yDir = (yDest - y) / dist;
-
+    protected void fire(FireData fireData) {
         ArrayList<Bullet> bullets = new ArrayList<>();
-        bullets.add(new ControlBullet(x, y, xDir, yDir, bulletSpeed, color, damage, belongTeam, effects, controlList));
-        user.addBullets(bullets);
+        bullets.add(new ControlBullet(fireData.getUserX(), fireData.getUserY(), fireData.getxDir(),
+                fireData.getyDir(), bulletSpeed * fireData.getBulletSpeedFactor(), color,
+                (int) Math.ceil(damage * fireData.getBulletDamageFactor()),
+                belongTeam * fireData.getBelongTeamFactor(), effects, controlList));
+        fireData.setBullets(bullets);
     }
 
     @Override

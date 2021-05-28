@@ -1,20 +1,17 @@
 package MazeGame.helper;
 
-import MazeGame.Creature;
-import MazeGame.Enemy;
-import MazeGame.bullets.Bullet;
+import MazeGame.creature.Creature;
 
 import java.awt.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 
-public class creaturePositionRecorder {
+public class CreaturePositionRecorder {
     private int iPos;
     private int jPos;
     private Color color;
-    private bulletPositionRecorder[] bullets;
+    private BulletPositionRecorder[] bullets;
     private Creature creatureReference;
 
-    public creaturePositionRecorder(){
+    public CreaturePositionRecorder(){
         iPos = -1;
         jPos = -1;
         creatureReference = null;
@@ -49,11 +46,11 @@ public class creaturePositionRecorder {
         this.color = color;
     }
 
-    public bulletPositionRecorder[]  getBullets() {
+    public BulletPositionRecorder[]  getBullets() {
         return bullets;
     }
 
-    public void setBullets(bulletPositionRecorder[] bullets) {
+    public void setBullets(BulletPositionRecorder[] bullets) {
         this.bullets = bullets;
     }
 

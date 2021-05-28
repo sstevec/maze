@@ -1,9 +1,12 @@
-package MazeGame;
+package MazeGame.creature;
 
+import MazeGame.GameResourceController;
+import MazeGame.creature.Creature;
+import MazeGame.creature.Player;
 import MazeGame.effect.Effect;
 import MazeGame.helper.Coordinate;
 import MazeGame.helper.Point;
-import MazeGame.helper.creaturePositionRecorder;
+import MazeGame.helper.CreaturePositionRecorder;
 import MazeGame.weapons.BrokenGun;
 
 import java.awt.*;
@@ -13,25 +16,25 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static MazeGame.Info.*;
+import static MazeGame.helper.Info.*;
 
 public class Enemy extends Creature implements Runnable {
 
     private int iRoom;
     private int jRoom;
-    private Player playerInfo;
+    private final Player playerInfo;
     private Creature betrayedTarget;
     private boolean betrayed = false;
-    private ArrayList<Integer> avaSlot;
+    private final ArrayList<Integer> avaSlot;
     private int assignPosition;
     private Point[][] map;
     private ArrayList<Coordinate> openSupport;
-    private int[] moveDirX = {1, 1, 1, 0, 0, -1, -1, -1};
-    private int[] moveDirY = {1, 0, -1, 1, -1, 1, 0, -1};
+    private final int[] moveDirX = {1, 1, 1, 0, 0, -1, -1, -1};
+    private final int[] moveDirY = {1, 0, -1, 1, -1, 1, 0, -1};
     private int mapUpdateCounter = 0;
 
 
-    private CopyOnWriteArrayList<Effect> effects;
+    private final CopyOnWriteArrayList<Effect> effects;
 
     private Timer moveDriver = new Timer();
     private Timer shotDriver = new Timer();
@@ -41,7 +44,7 @@ public class Enemy extends Creature implements Runnable {
     private int moveSpeed = 3; //default
     private int attackRate = 2; //default
 
-    private ArrayList<Coordinate> moveQueue = new ArrayList<>();
+    private final ArrayList<Coordinate> moveQueue = new ArrayList<>();
 
     public Enemy(int roomI, int roomJ, GameResourceController gameResourceController) {
         // in future you should move these property to child class
@@ -63,8 +66,8 @@ public class Enemy extends Creature implements Runnable {
         initDriver();
     }
 
-    protected void customInit(){
-        
+    protected void customInit() {
+
     }
 
     private void init() {
@@ -87,13 +90,10 @@ public class Enemy extends Creature implements Runnable {
         Random random = new Random();
 
         // generate enemy position
-        while(true) {
+        do {
             iPos = iRoom * roomSize + random.nextInt(roomSize - 11) + 5;
             jPos = jRoom * roomSize + random.nextInt(roomSize - 11) + 5;
-            if(!cellInfo[iPos][jPos].isBoarder()){
-                break;
-            }
-        }
+        } while (cellInfo[iPos][jPos].isBoarder());
 
 
         // create a map used to find way
@@ -156,7 +156,7 @@ public class Enemy extends Creature implements Runnable {
         int iDest = playerInfo.getiPos() - iPos;
         int jDest = playerInfo.getjPos() - jPos;
 
-        if (Math.sqrt(iDest*iDest + jDest*jDest) <= 5) {
+        if (Math.sqrt(iDest * iDest + jDest * jDest) <= 5) {
             // really close
             synchronized (moveQueue) {
                 moveQueue.clear();
@@ -229,7 +229,7 @@ public class Enemy extends Creature implements Runnable {
         int iDest = target.getiPos() - iPos;
         int jDest = target.getjPos() - jPos;
 
-        if (Math.sqrt(iDest*iDest + jDest*jDest) <= 8) {
+        if (Math.sqrt(iDest * iDest + jDest * jDest) <= 8) {
             // in the same room
             weapon.CheckFireStatus(jPos * cellWidth, iPos * cellWidth, target.jPos * cellWidth, target.iPos * cellWidth);
         }
@@ -238,8 +238,6 @@ public class Enemy extends Creature implements Runnable {
 
     private void moveAround() {
         Random random = new Random();
-        boolean findPos = false;
-
 
         int num = random.nextInt(8);
         int i = iPos + moveDirX[num];
@@ -273,8 +271,6 @@ public class Enemy extends Creature implements Runnable {
         synchronized (avaSlot) {
             avaSlot.add(assignPosition);
         }
-
-
     }
 
     @Override
@@ -307,13 +303,13 @@ public class Enemy extends Creature implements Runnable {
         betrayedTarget = null;
         double shortestDist = 10000;
         // change to enemy
-        for (creaturePositionRecorder newEnemy: creatures) {
+        for (CreaturePositionRecorder newEnemy : creatures) {
             Creature creature = newEnemy.getCreatureReference();
-            if(creature != null && creature != this && creature.getTeamNumber() != getTeamNumber()){
+            if (creature != null && creature != this && creature.getTeamNumber() != getTeamNumber()) {
                 int iDis = creature.iPos - iPos;
                 int jDis = creature.jPos - jPos;
                 double dist = Math.sqrt(iDis * iDis + jDis * jDis);
-                if(dist < shortestDist){
+                if (dist < shortestDist) {
                     betrayedTarget = creature;
                     shortestDist = dist;
                 }
@@ -321,8 +317,6 @@ public class Enemy extends Creature implements Runnable {
         }
 
     }
-
-
 
 
     private void generateMoveQueue() {

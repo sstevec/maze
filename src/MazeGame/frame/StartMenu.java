@@ -1,4 +1,4 @@
-package MazeGame;
+package MazeGame.frame;
 
 import javax.swing.*;
 import java.awt.*;

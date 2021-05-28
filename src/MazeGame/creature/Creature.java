@@ -1,9 +1,12 @@
-package MazeGame;
+package MazeGame.creature;
 
+import MazeGame.map.Cell;
+import MazeGame.GameResourceController;
 import MazeGame.buffs.Buff;
 import MazeGame.bullets.Bullet;
-import MazeGame.helper.bulletPositionRecorder;
-import MazeGame.helper.creaturePositionRecorder;
+import MazeGame.equipment.weaponComponent.WeaponComponent;
+import MazeGame.helper.BulletPositionRecorder;
+import MazeGame.helper.CreaturePositionRecorder;
 import MazeGame.weapons.Weapon;
 
 import java.awt.*;
@@ -31,15 +34,19 @@ public abstract class Creature {
     protected HashMap<String, Buff> buffs = new HashMap<>();
     protected Weapon weapon;
 
-    protected bulletPositionRecorder[] bullets;
-    protected ArrayList<Integer> avaSlot;
+    protected BulletPositionRecorder[] bullets;
+    protected final ArrayList<Integer> avaSlot;
     protected ArrayList<Integer> readySlot;
     protected Timer bulletDriver = new Timer();
-    protected creaturePositionRecorder[] creatures;
+    protected CreaturePositionRecorder[] creatures;
     protected GameResourceController gameResourceController;
 
+    protected final ArrayList<WeaponComponent> preProcessComponent;
+    protected final WeaponComponent[] postProcessComponent;
+    protected final WeaponComponent[] beg;
+
     private boolean died = false;
-    private Timer aliveChecker = new Timer();
+    private final Timer aliveChecker = new Timer();
 
 
 
@@ -49,10 +56,14 @@ public abstract class Creature {
         this.maxHealth = maxHealth;
         this.teamNumber = teamNumber;
         this.cellInfo = gameResourceController.getTotalMap();
-        this.bullets = new bulletPositionRecorder[500];
+        this.bullets = new BulletPositionRecorder[500];
         this.avaSlot = new ArrayList<>();
         this.readySlot = new ArrayList<>();
         this.creatures = gameResourceController.getCreatures();
+
+        this.preProcessComponent = new ArrayList<>();
+        this.postProcessComponent = new WeaponComponent[6];
+        this.beg = new WeaponComponent[12];
         customInit();
         initDriver();
     }
@@ -68,7 +79,7 @@ public abstract class Creature {
 
     private void initDriver() {
         for (int i = 0; i < 500; i++) {
-            bullets[i] = new bulletPositionRecorder();
+            bullets[i] = new BulletPositionRecorder();
             avaSlot.add(i);
         }
 
@@ -108,7 +119,7 @@ public abstract class Creature {
                     while(!bullets.isEmpty()) {
                         int assignNumber = avaSlot.remove(0);
                         Bullet bullet = bullets.remove(0);
-                        bullet.initBulletDriver(assignNumber, creatures, this.bullets, readySlot, cellInfo);
+                        bullet.initBulletDriver(assignNumber, creatures, this.bullets, readySlot, cellInfo, this);
                     }
                     return;
                 }
@@ -131,10 +142,10 @@ public abstract class Creature {
         }
         dieClear();
         bulletDriver.cancel();
-        for (bulletPositionRecorder bullet : bullets) {
+        for (BulletPositionRecorder bullet : bullets) {
             Bullet temp = bullet.getBulletReference();
             if (temp != null) {
-                temp.die();
+                temp.dieWithoutEvent();
             }
         }
     }
@@ -179,11 +190,11 @@ public abstract class Creature {
         return jPos;
     }
 
-    public creaturePositionRecorder[] getCreatures() {
+    public CreaturePositionRecorder[] getCreatures() {
         return creatures;
     }
 
-    public bulletPositionRecorder[] getBullets() {
+    public BulletPositionRecorder[] getBullets() {
         return bullets;
     }
 
@@ -218,6 +229,48 @@ public abstract class Creature {
             maxHealth += extraHealth;
             currentHealth = currentHealth + (int)(maxHealth * (heal/100.0));
             currentHealth = Math.min(currentHealth, maxHealth);
+        }
+    }
+
+    public ArrayList<WeaponComponent> getPreProcessComponent() {
+        return preProcessComponent;
+    }
+
+    public WeaponComponent[] getPostProcessComponent() {
+        return postProcessComponent;
+    }
+
+    public WeaponComponent[] getBeg() {
+        return beg;
+    }
+
+    public boolean putIntoBeg(WeaponComponent weaponComponent){
+        synchronized (beg){
+            for(int i = 0; i<beg.length; i++){
+                if(beg[i] == null){
+                    beg[i] = weaponComponent;
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public void putIntoPreProcess(WeaponComponent weaponComponent){
+        synchronized (preProcessComponent){
+            preProcessComponent.add(weaponComponent);
+        }
+    }
+
+    public boolean putIntoPostProcess(WeaponComponent weaponComponent){
+        synchronized (postProcessComponent){
+            for(int i = 0; i<postProcessComponent.length; i++){
+                if(postProcessComponent[i] == null){
+                    postProcessComponent[i] = weaponComponent;
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

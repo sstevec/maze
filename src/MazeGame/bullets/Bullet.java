@@ -1,10 +1,12 @@
 package MazeGame.bullets;
 
-import MazeGame.Cell;
-import MazeGame.Creature;
+import MazeGame.helper.Event;
+import MazeGame.helper.EventInfo;
+import MazeGame.map.Cell;
+import MazeGame.creature.Creature;
 import MazeGame.effect.Effect;
-import MazeGame.helper.bulletPositionRecorder;
-import MazeGame.helper.creaturePositionRecorder;
+import MazeGame.helper.BulletPositionRecorder;
+import MazeGame.helper.CreaturePositionRecorder;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -12,28 +14,33 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static MazeGame.Info.cellWidth;
+import static MazeGame.helper.Info.cellWidth;
 
 public abstract class Bullet {
 
     protected double x;         // pos of the bullet
     protected double y;
-    private double xDir;        // directions of the bullet
-    private double yDir;
-    private int speed;
-    private int damage;
-    private Color color;
-    private int belongTeam;
-    protected CopyOnWriteArrayList<Effect> effects;
-    private Timer bulletDriver;
-    protected creaturePositionRecorder[] creatures;
+    protected double xDir;        // directions of the bullet
+    protected double yDir;
+    protected double speed;
+    protected int damage;
+    protected Color color;
+    protected int belongTeam;
     private int assignNumber;
-    private ArrayList<Integer> readyPool;
-    private bulletPositionRecorder[] bullets;
-    private Cell[][] cells;
     private boolean died = false;
 
-    public Bullet(double x, double y, double xDir, double yDir, int speed, Color color, int damage, int belongTeam, CopyOnWriteArrayList<Effect> effects) {
+    protected CopyOnWriteArrayList<Effect> effects;
+    private final Timer bulletDriver;
+    protected CreaturePositionRecorder[] creatures;
+    private ArrayList<Integer> readyPool;
+    private BulletPositionRecorder[] bullets;
+    private Cell[][] cells;
+    private final ArrayList<Event> dieEvents;
+    private final ArrayList<Event> createEvents;
+    private Creature source;
+
+
+    public Bullet(double x, double y, double xDir, double yDir, double speed, Color color, int damage, int belongTeam, CopyOnWriteArrayList<Effect> effects) {
         this.x = x;
         this.y = y;
         this.xDir = xDir;
@@ -44,6 +51,8 @@ public abstract class Bullet {
         this.belongTeam = belongTeam;
         this.effects = effects;
         this.bulletDriver = new Timer();
+        this.dieEvents = new ArrayList<>();
+        this.createEvents = new ArrayList<>();
     }
 
 
@@ -55,8 +64,8 @@ public abstract class Bullet {
         bullets[assignNumber].setjPos((int) x);
     }
 
-    public void initBulletDriver(int assignNumber, creaturePositionRecorder[] creatureList, bulletPositionRecorder[] bullets,
-                                 ArrayList<Integer> readyPool, Cell[][] cells) {
+    public void initBulletDriver(int assignNumber, CreaturePositionRecorder[] creatureList, BulletPositionRecorder[] bullets,
+                                 ArrayList<Integer> readyPool, Cell[][] cells, Creature source) {
         // creatures is a list of creatures, it may contain null spot in between
         this.creatures = creatureList;
 
@@ -70,10 +79,15 @@ public abstract class Bullet {
         this.readyPool = readyPool;
 
         this.cells = cells;
+        this.source = source;
 
         bullets[assignNumber].setiPos((int) y);
         bullets[assignNumber].setjPos((int) x);
         bullets[assignNumber].setBulletReference(this);
+
+        for (Event e : createEvents) {
+            e.invoke(null);
+        }
 
         bulletDriver.schedule(new TimerTask() {
             @Override
@@ -82,12 +96,18 @@ public abstract class Bullet {
 
                 // after flying, check if it reach the bound
                 if (cells[(int) (y / cellWidth)][(int) (x / cellWidth)].isBoarder()) {
-                    die();
+                    EventInfo info = new EventInfo(source);
+                    if (cells[(int) ((y - (yDir * speed)) / cellWidth)][(int) (x / cellWidth)].isBoarder()) {
+                        info.getDataMap().put("reflectDir", "x");
+                    } else {
+                        info.getDataMap().put("reflectDir", "y");
+                    }
+                    dieWithEvent(info);
                 }
 
 
                 // then check if the bullet hit any enemy
-                for (creaturePositionRecorder c : creatures) {
+                for (CreaturePositionRecorder c : creatures) {
                     Creature creature = c.getCreatureReference();
                     if (creature == null) {
                         continue;
@@ -101,7 +121,8 @@ public abstract class Bullet {
 
                     if (belongTeam != creature.getTeamNumber() && dis <= 12.5) {
                         hurt(creature);
-                        die();
+                        EventInfo info = new EventInfo(source);
+                        dieWithEvent(info);
                         return;
                     }
                 }
@@ -111,25 +132,44 @@ public abstract class Bullet {
         }, 0, 1000 / 40);
     }
 
-    public void die(){
-        if(died){
+    public void dieWithEvent(EventInfo info) {
+        if (died) {
             System.out.println("WARNING from bullet: try to kill one bullet twice");
             return;
-        }else{
+        } else {
             died = true;
         }
+
         dieEffect();
+
+        for (Event e : dieEvents) {
+            e.invoke(info);
+        }
+
+        dieClear();
+    }
+
+    public void dieWithoutEvent() {
+        if (died) {
+            System.out.println("WARNING from bullet: try to kill one bullet twice");
+            return;
+        } else {
+            died = true;
+        }
+        dieClear();
+    }
+
+    private void dieClear() {
         bulletDriver.cancel();
         bullets[assignNumber].setiPos(-1);
         bullets[assignNumber].setjPos(-1);
         bullets[assignNumber].setBulletReference(null);
 
         // give the assigned number back so the graph list slot can be reused
-        synchronized (readyPool){
+        synchronized (readyPool) {
             readyPool.add(assignNumber);
         }
     }
-
 
     /***
      *
@@ -145,8 +185,15 @@ public abstract class Bullet {
 
     abstract void dieEffect();
 
+    public abstract Bullet copy(double x, double y, double xDir, double yDir, double speed, int damage);
 
+    public double getxDir() {
+        return xDir;
+    }
 
+    public double getyDir() {
+        return yDir;
+    }
 
     public double getX() {
         return x;
@@ -166,5 +213,29 @@ public abstract class Bullet {
 
     public int getBelongTeam() {
         return belongTeam;
+    }
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public ArrayList<Event> getDieEvents() {
+        return dieEvents;
+    }
+
+    public ArrayList<Event> getCreateEvents() {
+        return createEvents;
+    }
+
+    public Creature getSource() {
+        return source;
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = speed;
+    }
+
+    public void setDamage(int damage) {
+        this.damage = damage;
     }
 }

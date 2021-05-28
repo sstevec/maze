@@ -1,6 +1,6 @@
 package MazeGame.buffs;
 
-import MazeGame.Creature;
+import MazeGame.creature.Creature;
 
 import java.util.Timer;
 import java.util.TimerTask;

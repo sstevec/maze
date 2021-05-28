@@ -1,10 +1,14 @@
-package MazeGame;
+package MazeGame.graphic;
 
+import MazeGame.map.Cell;
+import MazeGame.creature.Creature;
+import MazeGame.GameResourceController;
+import MazeGame.creature.Player;
 import MazeGame.bullets.Bullet;
 import MazeGame.effect.Effect;
 import MazeGame.effect.Explosion;
-import MazeGame.helper.bulletPositionRecorder;
-import MazeGame.helper.creaturePositionRecorder;
+import MazeGame.helper.BulletPositionRecorder;
+import MazeGame.helper.CreaturePositionRecorder;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,11 +21,11 @@ public class Graphic extends JPanel {
     private Cell[][] totalMap;
     private int totalMapSize;
     private Player playerInfo;
-    private creaturePositionRecorder[] creatures;
+    private CreaturePositionRecorder[] creatures;
     private CopyOnWriteArrayList<Effect> effects;
     private Font itemFont = new Font("Cosmic", Font.BOLD, 12);
 
-    Graphic(GameResourceController gameResourceController) {
+    public Graphic(GameResourceController gameResourceController) {
         this.setBounds(0, 0, 1215, 825);
         this.totalMap = gameResourceController.getTotalMap();
         totalMapSize = gameResourceController.getTotalMapSize();
@@ -93,7 +97,7 @@ public class Graphic extends JPanel {
             }
         }
 
-        for (creaturePositionRecorder temp : creatures
+        for (CreaturePositionRecorder temp : creatures
         ) {
             Creature creature = temp.getCreatureReference();
             if (creature == null) {
@@ -107,8 +111,8 @@ public class Graphic extends JPanel {
 
             graphics.fillRect((jPos - startY) * 15, (iPos - startX) * 15, 15, 15);
 
-            bulletPositionRecorder[] bullets = creature.getBullets();
-            for (bulletPositionRecorder tempC : bullets
+            BulletPositionRecorder[] bullets = creature.getBullets();
+            for (BulletPositionRecorder tempC : bullets
             ) {
                 Bullet tempB = tempC.getBulletReference();
                 if (tempB == null) {
@@ -125,22 +129,6 @@ public class Graphic extends JPanel {
                 graphics.drawOval(temp.getX() - (startY * 15) - radius / 2, temp.getY() - (startX * 15) - radius / 2, radius, radius);
             }
         }
-
-
-//        graphics.setColor(Color.BLACK);
-//        graphics.drawString(playerInfo.getCurrentHealth() + " / " + playerInfo.getMaxHealth(), (yPos - startY) * 15 - 15, (xPos - startX) * 15 - 5);
-//        graphics.setColor(Color.cyan);
-//        graphics.fillRect((yPos - startY) * 15, (xPos - startX) * 15, 15, 15);
-//
-//        bulletPositionRecorder[] bullets = playerInfo.getBullets();
-//        for (bulletPositionRecorder tempC : bullets
-//        ) {
-//            Bullet tempB = tempC.getBulletReference();
-//            if (tempB == null) {
-//                continue;
-//            }
-//            graphics.fillArc((int) Math.round(tempB.getX() - (startY * 15)), (int) Math.round(tempB.getY() - (startX * 15)), 10, 10, 0, 360);
-//        }
     }
 
 }
