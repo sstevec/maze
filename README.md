@@ -1,7 +1,7 @@
 How to play this game !!!
 ===
 
-###Move:
+###Move:  
     w: press to move up, hold to keep moving up  
     a: press to move left, hold to keep moving left  
     s: press to move down, hold to keep moving down  
@@ -10,19 +10,19 @@ How to play this game !!!
            so that the player would be at center of the screen 
            
            
-###Fire
+###Fire:  
     Mouse-left button: open fire, hold to keep open fire
     Mouse-right button: use weapon's ability 
     
     
-###Other Operations
+###Other Operations:  
     q: open the beg, press it again to close the beg
     g: drop current weapon
     f: pick up weapon or loots
     e: interact with chests or other interactable things
     
     
-###Game Components
+###Game Components:  
     Black block: Wall
     Cyan block: Player
     Green block: Ally
@@ -36,7 +36,7 @@ How to play this game !!!
              click the weapon component in beg to equip)
     Grey/Green/Blue/Orange block: Upgrader loot chest
 
-###Coming Soon
+###Coming Soon:  
     - More Enemy types
     - More Weapon types
     - More Weapon components
