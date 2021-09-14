@@ -19,6 +19,6 @@ public class NoWeapon extends Weapon {
     }
 
     @Override
-    protected void cast(int x, int y, int xDest, int yDest) {
+    protected void cast(double x, double y, double xDest, double yDest) {
     }
 }

@@ -75,7 +75,7 @@ public abstract class Weapon extends Item {
         }
     }
 
-    public void CheckAbilityStatus(int xPos, int yPos, int xDest, int yDest) {
+    public void CheckAbilityStatus(double xPos, double yPos, double xDest, double yDest) {
         if (allowCast) {
             allowCast = false;
             currentTime = 0;
@@ -100,7 +100,7 @@ public abstract class Weapon extends Item {
 
     abstract void fire(FireData fireData);
 
-    abstract void cast(int x, int y, int xDest, int yDest);
+    abstract void cast(double x, double y, double xDest, double yDest);
 
 
     public double getFireRate() {

@@ -28,8 +28,9 @@ public abstract class Creature {
     private int teamNumber;
 
     protected Color color;
-    protected int iPos;
-    protected int jPos;
+    protected double iDPos;
+    protected double jDPos;
+    protected double moveSpeed;
     protected Cell[][] cellInfo; // a reference of cell info
     protected HashMap<String, Buff> buffs = new HashMap<>();
     protected Weapon weapon;
@@ -60,6 +61,7 @@ public abstract class Creature {
         this.avaSlot = new ArrayList<>();
         this.readySlot = new ArrayList<>();
         this.creatures = gameResourceController.getCreatures();
+        this.moveSpeed = 0.5;
 
         this.preProcessComponent = new ArrayList<>();
         this.postProcessComponent = new WeaponComponent[6];
@@ -182,12 +184,12 @@ public abstract class Creature {
         return color;
     }
 
-    public int getiPos() {
-        return iPos;
+    public double getiDPos() {
+        return iDPos;
     }
 
-    public int getjPos() {
-        return jPos;
+    public double getjDPos() {
+        return jDPos;
     }
 
     public CreaturePositionRecorder[] getCreatures() {

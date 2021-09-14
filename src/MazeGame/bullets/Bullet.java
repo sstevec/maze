@@ -112,8 +112,8 @@ public abstract class Bullet {
                     if (creature == null) {
                         continue;
                     }
-                    int iPos = creature.getiPos();
-                    int jPos = creature.getjPos();
+                    double iPos = creature.getiDPos();
+                    double jPos = creature.getjDPos();
 
                     double jDis = jPos * cellWidth + 7.5 - x;
                     double iDis = iPos * cellWidth + 7.5 - y;

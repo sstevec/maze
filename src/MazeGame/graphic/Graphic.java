@@ -16,16 +16,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Graphic extends JPanel {
 
-    private int xPos;
-    private int yPos;
+    private double playerIPos;
+    private double playerJPos;
     private Cell[][] totalMap;
     private int totalMapSize;
     private Player playerInfo;
     private CreaturePositionRecorder[] creatures;
     private CopyOnWriteArrayList<Effect> effects;
     private Font itemFont = new Font("Cosmic", Font.BOLD, 12);
+    private GameResourceController gameResourceController;
 
     public Graphic(GameResourceController gameResourceController) {
+        this.gameResourceController = gameResourceController;
         this.setBounds(0, 0, 1215, 825);
         this.totalMap = gameResourceController.getTotalMap();
         totalMapSize = gameResourceController.getTotalMapSize();
@@ -36,18 +38,20 @@ public class Graphic extends JPanel {
 
 
     public void drawElements() {
-        xPos = playerInfo.getX();
-        yPos = playerInfo.getY();
         repaint();
     }
 
+    public void updateViewLocation(){
+        playerIPos = gameResourceController.getLastIPos();
+        playerJPos = gameResourceController.getLastJPos();
+    }
 
     public void paint(Graphics graphics) {
         // use father class
         super.paint(graphics);
         // calculate start point
-        int startX = xPos - 27;
-        int endX = xPos + 27;
+        double startX = playerIPos - 27;
+        double endX = playerIPos + 27;
         if (startX < 0) {
             startX = 0;
             endX = 54;
@@ -57,8 +61,8 @@ public class Graphic extends JPanel {
             startX = totalMapSize - 55;
         }
 
-        int startY = yPos - 40;
-        int endY = yPos + 40;
+        double startY = playerJPos - 40;
+        double endY = playerJPos + 40;
         if (startY < 0) {
             startY = 0;
             endY = 80;
@@ -68,18 +72,18 @@ public class Graphic extends JPanel {
             startY = totalMapSize - 81;
         }
 
-        int xLength = endX - startX;
-        int yLength = endY - startY;
+        double xLength = endX - startX;
+        double yLength = endY - startY;
 
         graphics.setFont(itemFont);
 
         for (int i = 0; i <= xLength; i++) {
             for (int j = 0; j <= yLength; j++) {
-                if (totalMap[startX + i][startY + j].isBoarder()) {
+                if (totalMap[(int)startX + i][(int)startY + j].isBoarder()) {
                     graphics.setColor(Color.BLACK);
                     graphics.fillRect(j * 15, i * 15, 15, 15);
-                } else if (totalMap[startX + i][startY + j].getIntractable() != null) {
-                    graphics.setColor(totalMap[startX + i][startY + j].getIntractable().getColor());
+                } else if (totalMap[(int)startX + i][(int)startY + j].getIntractable() != null) {
+                    graphics.setColor(totalMap[(int)startX + i][(int)startY + j].getIntractable().getColor());
                     graphics.fillRect(j * 15, i * 15, 15, 15);
                 } else {
                     graphics.setColor(Color.WHITE);
@@ -90,9 +94,9 @@ public class Graphic extends JPanel {
 
         for (int i = 0; i <= xLength; i++) {
             for (int j = 0; j <= yLength; j++) {
-                if (totalMap[startX + i][startY + j].getFallenItem() != null) {
+                if (totalMap[(int)startX + i][(int)startY + j].getFallenItem() != null) {
                     graphics.setColor(Color.BLUE);
-                    graphics.drawString("| " + totalMap[startX + i][startY + j].getFallenItem().getName() + " |", j * 15 - 5, i * 15 + 15);
+                    graphics.drawString("| " + totalMap[(int)startX + i][(int)startY + j].getFallenItem().getName() + " |", j * 15 - 5, i * 15 + 15);
                 }
             }
         }
@@ -103,13 +107,13 @@ public class Graphic extends JPanel {
             if (creature == null) {
                 continue;
             }
-            int iPos = temp.getiPos();
-            int jPos = temp.getjPos();
+            double iPos = temp.getiDPos();
+            double jPos = temp.getjDPos();
 
             graphics.setColor(temp.getColor());
-            graphics.drawString(creature.getCurrentHealth() + " / " + creature.getMaxHealth(), (jPos - startY) * 15 - 15, (iPos - startX) * 15 - 5);
+            graphics.drawString(creature.getCurrentHealth() + " / " + creature.getMaxHealth(), (int)((jPos - startY) * 15 - 15), (int)((iPos - startX) * 15 - 5));
 
-            graphics.fillRect((jPos - startY) * 15, (iPos - startX) * 15, 15, 15);
+            graphics.fillRect((int)((jPos - startY) * 15), (int)((iPos - startX) * 15), 15, 15);
 
             BulletPositionRecorder[] bullets = creature.getBullets();
             for (BulletPositionRecorder tempC : bullets
@@ -126,7 +130,7 @@ public class Graphic extends JPanel {
             graphics.setColor(temp.getColor());
             if (temp instanceof Explosion) {
                 int radius = ((Explosion) temp).getCurrentRadius();
-                graphics.drawOval(temp.getX() - (startY * 15) - radius / 2, temp.getY() - (startX * 15) - radius / 2, radius, radius);
+                graphics.drawOval((int)(temp.getX() - (startY * 15) - radius / 2), (int)(temp.getY() - (startX * 15) - radius / 2), radius, radius);
             }
         }
     }

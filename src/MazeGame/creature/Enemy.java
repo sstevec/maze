@@ -91,9 +91,9 @@ public class Enemy extends Creature implements Runnable {
 
         // generate enemy position
         do {
-            iPos = iRoom * roomSize + random.nextInt(roomSize - 11) + 5;
-            jPos = jRoom * roomSize + random.nextInt(roomSize - 11) + 5;
-        } while (cellInfo[iPos][jPos].isBoarder());
+            iDPos = iRoom * roomSize + random.nextInt(roomSize - 11) + 5;
+            jDPos = jRoom * roomSize + random.nextInt(roomSize - 11) + 5;
+        } while (cellInfo[(int) iDPos][(int) jDPos].isBoarder());
 
 
         // create a map used to find way
@@ -105,8 +105,8 @@ public class Enemy extends Creature implements Runnable {
             }
         }
 
-        creatures[assignPosition].setiPos(iPos);
-        creatures[assignPosition].setjPos(jPos);
+        creatures[assignPosition].setiDPos(iDPos);
+        creatures[assignPosition].setjDPos(jDPos);
         creatures[assignPosition].setColor(color);
         creatures[assignPosition].setBullets(bullets);
         creatures[assignPosition].setCreatureReference(this);
@@ -153,8 +153,8 @@ public class Enemy extends Creature implements Runnable {
             mapUpdateCounter = 0;
         }
 
-        int iDest = playerInfo.getiPos() - iPos;
-        int jDest = playerInfo.getjPos() - jPos;
+        double iDest = playerInfo.getiDPos() - iDPos;
+        double jDest = playerInfo.getjDPos() - jDPos;
 
         if (Math.sqrt(iDest * iDest + jDest * jDest) <= 5) {
             // really close
@@ -178,23 +178,21 @@ public class Enemy extends Creature implements Runnable {
                     moveTarget = moveQueue.remove(moveQueue.size() - 1);
 
                     // update my position
-                    int oldI = iPos;
-                    int oldJ = jPos;
-                    iPos = moveTarget.getRow();
-                    jPos = moveTarget.getColumn();
-                    if (oldI == iPos && oldJ == jPos) {
+                    double oldI = iDPos;
+                    double oldJ = jDPos;
+                    iDPos = moveTarget.getRow();
+                    jDPos = moveTarget.getColumn();
+                    if (oldI == iDPos && oldJ == jDPos) {
                         return;
                     }
 
-                    //System.out.println("old position is: " + oldI + "," + oldJ + "   " + iPos + ","+jPos);
-
                     // update room
-                    iRoom = iPos / roomSize;
-                    jRoom = jPos / roomSize;
+                    iRoom = (int)iDPos / roomSize;
+                    jRoom = (int)jDPos / roomSize;
 
                     // update graphic position
-                    creatures[assignPosition].setiPos(iPos);
-                    creatures[assignPosition].setjPos(jPos);
+                    creatures[assignPosition].setiDPos(iDPos);
+                    creatures[assignPosition].setjDPos(jDPos);
                 }
             }
         }
@@ -226,12 +224,12 @@ public class Enemy extends Creature implements Runnable {
         if (target == null) {
             return;
         }
-        int iDest = target.getiPos() - iPos;
-        int jDest = target.getjPos() - jPos;
+        double iDest = target.getiDPos() - iDPos;
+        double jDest = target.getjDPos() - jDPos;
 
         if (Math.sqrt(iDest * iDest + jDest * jDest) <= 8) {
             // in the same room
-            weapon.CheckFireStatus(jPos * cellWidth, iPos * cellWidth, target.jPos * cellWidth, target.iPos * cellWidth);
+            weapon.CheckFireStatus(jDPos * cellWidth, iDPos * cellWidth, target.jDPos * cellWidth, target.iDPos * cellWidth);
         }
     }
 
@@ -240,21 +238,20 @@ public class Enemy extends Creature implements Runnable {
         Random random = new Random();
 
         int num = random.nextInt(8);
-        int i = iPos + moveDirX[num];
-        int j = jPos + moveDirY[num];
+        int i = (int)iDPos + moveDirX[num];
+        int j = (int)jDPos + moveDirY[num];
 
 
         if (i >= 0 && j >= 0 && i < mapSize * roomSize && j < mapSize * roomSize) {
             if (!map[i][j].isWall()) {
-                iPos = i;
-                jPos = j;
-
+                iDPos = i;
+                jDPos = j;
                 // update room
-                iRoom = iPos / roomSize;
-                jRoom = jPos / roomSize;
+                iRoom = (int)iDPos / roomSize;
+                jRoom = (int)jDPos / roomSize;
 
-                creatures[assignPosition].setiPos(iPos);
-                creatures[assignPosition].setjPos(jPos);
+                creatures[assignPosition].setiDPos(iDPos);
+                creatures[assignPosition].setjDPos(jDPos);
             }
         }
     }
@@ -265,6 +262,8 @@ public class Enemy extends Creature implements Runnable {
         shotDriver.cancel();
         creatures[assignPosition].setiPos(-1);
         creatures[assignPosition].setjPos(-1);
+        creatures[assignPosition].setiDPos(-1);
+        creatures[assignPosition].setjDPos(-1);
         creatures[assignPosition].setColor(null);
         creatures[assignPosition].setCreatureReference(null);
         creatures[assignPosition].setBullets(null);
@@ -306,8 +305,8 @@ public class Enemy extends Creature implements Runnable {
         for (CreaturePositionRecorder newEnemy : creatures) {
             Creature creature = newEnemy.getCreatureReference();
             if (creature != null && creature != this && creature.getTeamNumber() != getTeamNumber()) {
-                int iDis = creature.iPos - iPos;
-                int jDis = creature.jPos - jPos;
+                double iDis = creature.iDPos - iDPos;
+                double jDis = creature.jDPos - jDPos;
                 double dist = Math.sqrt(iDis * iDis + jDis * jDis);
                 if (dist < shortestDist) {
                     betrayedTarget = creature;
@@ -320,10 +319,10 @@ public class Enemy extends Creature implements Runnable {
 
 
     private void generateMoveQueue() {
-        int currentI = iPos;
-        int currentJ = jPos;
-        int endPointI = playerInfo.iPos;
-        int endPointJ = playerInfo.jPos;
+        int currentI = (int)iDPos;
+        int currentJ = (int)jDPos;
+        int endPointI = (int)playerInfo.iDPos;
+        int endPointJ = (int)playerInfo.jDPos;
 
         //System.out.println("starting generate new move queue from " + iPos + ","+jPos + "  to "+endPointI+","+endPointJ);
 

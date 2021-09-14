@@ -32,7 +32,7 @@ public class FireGun extends Weapon {
     }
 
     @Override
-    protected void cast(int x, int y, int xDest, int yDest) {
+    protected void cast(double x, double y, double xDest, double yDest) {
         double dist = Math.sqrt((xDest - x) * (xDest - x) + (yDest - y) * (yDest - y));
         double xDir = (xDest - x) / dist;
         double yDir = (yDest - y) / dist;

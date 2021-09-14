@@ -34,8 +34,8 @@ public class Explosion extends Effect{
         for(CreaturePositionRecorder enemy: creatures){
             Creature creature = enemy.getCreatureReference();
             if(creature != null){
-                int iDis = creature.getiPos() - i;
-                int jDis = creature.getjPos() - j;
+                double iDis = creature.getiDPos() - i;
+                double jDis = creature.getjDPos() - j;
                 if(Math.sqrt(iDis * iDis + jDis * jDis) < effectRadius){
                     creature.takeDamage(damage);
                 }

@@ -2,6 +2,8 @@ package MazeGame;
 
 import MazeGame.creature.Player;
 import MazeGame.effect.Effect;
+import MazeGame.equipment.weaponComponent.SplitFireComponent;
+import MazeGame.equipment.weaponComponent.WeaponComponent;
 import MazeGame.frame.GameInitializer;
 import MazeGame.frame.ItemFrame;
 import MazeGame.frame.StartMenu;
@@ -49,7 +51,10 @@ public class GameResourceController {
     private Timer playerDriver = new Timer();
 
     private Timer playerShootingDriver = new Timer();
-
+    private double xBorder;
+    private double yBorder;
+    private double lastIPos;
+    private double lastJPos;
 
 
     public GameResourceController(GameInitializer initializer, StartMenu s, int mapSize){
@@ -77,11 +82,25 @@ public class GameResourceController {
     public void initPlayer(int x, int y){
         player = new Player( x, y, this);
         creatures[0] = new CreaturePositionRecorder();
-        creatures[0].setiPos(player.getiPos());
-        creatures[0].setjPos(player.getjPos());
+        creatures[0].setiDPos(player.getiDPos());
+        creatures[0].setjDPos(player.getjDPos());
         creatures[0].setColor(player.getColor());
         creatures[0].setBullets(player.getBullets());
         creatures[0].setCreatureReference(player);
+
+        lastIPos = player.getiDPos();
+        lastJPos = player.getjDPos();
+        updateBorderCoordinate();
+    }
+
+    public void updateBorderCoordinate(){
+        yBorder = Math.max(player.getiDPos() - 27, 0);
+        xBorder = Math.max(player.getjDPos() - 40, 0);
+        yBorder = Math.min(yBorder, roomSize * mapSize - 55);
+        xBorder = Math.min(xBorder, roomSize * mapSize - 81);
+
+        lastIPos = player.getiDPos();
+        lastJPos = player.getjDPos();
     }
 
     public void initGraphicSystem(){
@@ -253,5 +272,21 @@ public class GameResourceController {
 
     public void setTotalMapSize(int totalMapSize) {
         this.totalMapSize = totalMapSize;
+    }
+
+    public double getxBorder() {
+        return xBorder;
+    }
+
+    public double getyBorder() {
+        return yBorder;
+    }
+
+    public double getLastIPos() {
+        return lastIPos;
+    }
+
+    public double getLastJPos() {
+        return lastJPos;
     }
 }

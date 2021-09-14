@@ -7,6 +7,8 @@ import java.awt.*;
 public class CreaturePositionRecorder {
     private int iPos;
     private int jPos;
+    protected double iDPos;
+    protected double jDPos;
     private Color color;
     private BulletPositionRecorder[] bullets;
     private Creature creatureReference;
@@ -33,9 +35,27 @@ public class CreaturePositionRecorder {
         this.jPos = jPos;
     }
 
+    public double getiDPos() {
+        return iDPos;
+    }
+
+    public void setiDPos(double iDPos) {
+        this.iDPos = iDPos;
+    }
+
+    public double getjDPos() {
+        return jDPos;
+    }
+
+    public void setjDPos(double jDPos) {
+        this.jDPos = jDPos;
+    }
+
     public void clear(){
         iPos = -1;
         jPos = -1;
+        iDPos = iPos;
+        jDPos = jPos;
     }
 
     public Color getColor() {

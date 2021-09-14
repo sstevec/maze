@@ -18,9 +18,6 @@ import static MazeGame.helper.Info.*;
 
 public class Player extends Creature {
 
-    // position
-    private int x; // cell level row number
-    private int y; // cell level column number
     private int roomI = 0;
     private int roomJ = 0;
 
@@ -34,12 +31,11 @@ public class Player extends Creature {
     private final GameInitializer gameInitializer;
 
 
-    public Player(int x, int y, GameResourceController gameResourceController) {
+    public Player(int iPos, int jPos, GameResourceController gameResourceController) {
         super(100, 100, 1, gameResourceController);
-        this.x = x;
-        this.y = y;
-        iPos = x;
-        jPos = y;
+        this.iDPos = iPos;
+        this.jDPos = jPos;
+
         this.totalMapSize = gameResourceController.getTotalMapSize();
         this.color = Color.CYAN;
         this.effects = gameResourceController.getEffects();
@@ -63,60 +59,54 @@ public class Player extends Creature {
      */
 
     public void fire(int xDest, int yDest) {
-        int yBorder = Math.max(x - 27, 0);
-        int xBorder = Math.max(y - 40, 0);
-        yBorder = Math.min(yBorder, roomSize * mapSize - 55);
-        xBorder = Math.min(xBorder, roomSize * mapSize - 81);
-        weapon.CheckFireStatus(y * Info.cellWidth + Info.cellWidth / 2, x * Info.cellWidth + Info.cellWidth / 2, xDest + xBorder * Info.cellWidth - 10, yDest + yBorder * Info.cellWidth - 35);
+
+        weapon.CheckFireStatus(jDPos * Info.cellWidth + Info.cellWidth / 2, iDPos * Info.cellWidth + Info.cellWidth / 2,
+                xDest + gameResourceController.getxBorder() * Info.cellWidth - 10, yDest + gameResourceController.getyBorder() * Info.cellWidth - 35);
     }
 
     public void castAbility(int xDest, int yDest) {
-        int yBorder = Math.max(x - 27, 0);
-        int xBorder = Math.max(y - 40, 0);
-        yBorder = Math.min(yBorder, roomSize * mapSize - 55);
-        xBorder = Math.min(xBorder, roomSize * mapSize - 81);
-        weapon.CheckAbilityStatus(y * Info.cellWidth + Info.cellWidth / 2, x * Info.cellWidth + Info.cellWidth / 2, xDest + xBorder * Info.cellWidth - 10, yDest + yBorder * Info.cellWidth - 35);
+        weapon.CheckAbilityStatus(jDPos * Info.cellWidth + Info.cellWidth / 2, iDPos * Info.cellWidth + Info.cellWidth / 2,
+                xDest + gameResourceController.getxBorder() * Info.cellWidth - 10, yDest + gameResourceController.getyBorder() * Info.cellWidth - 35);
     }
 
     public void move(String dir) {
-        int newX = iPos;
-        int newY = jPos;
+        double newI = iDPos;
+        double newJ = jDPos;
         if (dir.equals("up")) {
-            newX = iPos - 1;
+            newI = iDPos - moveSpeed;
         } else if (dir.equals("down")) {
-            newX = iPos + 1;
+            newI = iDPos + moveSpeed;
         } else if (dir.equals("left")) {
-            newY = jPos - 1;
+            newJ = jDPos - moveSpeed;
         } else if (dir.equals("right")) {
-            newY = jPos + 1;
+            newJ = jDPos + moveSpeed;
         }
-        if (newX < 1) {
-            newX = 1;
+        if (newI < 1) {
+            newI = 1;
         }
-        if (newY < 1) {
-            newY = 1;
+        if (newJ < 1) {
+            newJ = 1;
         }
-        if (newX >= totalMapSize) {
-            newX = totalMapSize - 1;
+        if (newI >= totalMapSize) {
+            newI = totalMapSize - 1;
         }
-        if (newY >= totalMapSize) {
-            newY = totalMapSize - 1;
+        if (newJ >= totalMapSize) {
+            newJ = totalMapSize - 1;
         }
 
         // check if new position is wall
-        if (cellInfo[newX][newY].isBoarder()) {
+        if (cellInfo[(int) (newI + 0.5)][(int) (newJ + 0.5)].isBoarder() ||
+                cellInfo[(int) (newI)][(int) (newJ)].isBoarder()) {
             return;
         }
 
-        iPos = newX;
-        jPos = newY;
-        x = newX;
-        y = newY;
-        creatures[0].setiPos(iPos);
-        creatures[0].setjPos(jPos);
-        roomI = x / roomSize;
-        roomJ = y / roomSize;
+        iDPos = newI;
+        jDPos = newJ;
+        roomI = (int)iDPos / roomSize;
+        roomJ = (int)jDPos / roomSize;
 
+        creatures[0].setiDPos(iDPos);
+        creatures[0].setjDPos(jDPos);
 
     }
 
@@ -134,8 +124,8 @@ public class Player extends Creature {
     public void pick() {
         for (int i = -3; i < 4; i++) {
             for (int j = -3; j < 4; j++) {
-                if (x + i < cellInfo.length && x + i >= 0 && y + j < cellInfo.length && y + j >= 0) {
-                    Item fallenItem = cellInfo[x + i][y + j].getFallenItem();
+                if (iDPos + i < cellInfo.length && iDPos + i >= 0 && jDPos + j < cellInfo.length && jDPos + j >= 0) {
+                    Item fallenItem = cellInfo[(int)iDPos + i][(int)jDPos + j].getFallenItem();
                     if (fallenItem != null) {
                         // there is an item
                         if (fallenItem.getKind() == WEAPON_KIND) {
@@ -153,18 +143,18 @@ public class Player extends Creature {
                             weapon.upgradeAttackSpeed(extraAttackSpeed);
                             weapon.upgradeDamage(extraDamage);
                             weapon.upgradeExtraCD(extraCDReduce);
-                            cellInfo[x + i][y + j].setFallenItem(tempWeapon);
+                            cellInfo[(int)iDPos + i][(int)jDPos + j].setFallenItem(tempWeapon);
                             return;
                         } else if (fallenItem.getKind() == BOOST_KIND) {
                             // it is a equipment
                             Equipment fallenEquipment = (Equipment) fallenItem;
                             fallenEquipment.pickUp(this);
-                            cellInfo[x + i][y + j].setFallenItem(null);
+                            cellInfo[(int)iDPos + i][(int)jDPos + j].setFallenItem(null);
                             return;
                         } else if (fallenItem.getKind() == WEAPON_COMPONENT_KIND) {
                             WeaponComponent weaponComponent = (WeaponComponent) fallenItem;
                             weaponComponent.pickUp(this);
-                            cellInfo[x + i][y + j].setFallenItem(null);
+                            cellInfo[(int)iDPos + i][(int)jDPos + j].setFallenItem(null);
                             return;
                         }
 
@@ -179,8 +169,8 @@ public class Player extends Creature {
     public void drop() {
         if (weapon.getDamage() != 0) {
             // means player equipped with a weapon
-            if (cellInfo[x][y].getFallenItem() == null) {
-                cellInfo[x][y].setFallenItem(weapon);
+            if (cellInfo[(int)iDPos][(int)jDPos].getFallenItem() == null) {
+                cellInfo[(int)iDPos][(int)jDPos].setFallenItem(weapon);
                 weapon = new NoWeapon(Color.CYAN, getTeamNumber(), effects, this);
             }
         }
@@ -189,9 +179,9 @@ public class Player extends Creature {
     public void interact() {
         for (int i = -3; i < 4; i++) {
             for (int j = -3; j < 4; j++) {
-                if (x + i < cellInfo.length && x + i >= 0 && y + j < cellInfo.length && y + j >= 0) {
-                    if (cellInfo[x + i][y + j].getIntractable() != null) {
-                        cellInfo[x + i][y + j].getIntractable().interact(gameResourceController);
+                if (iDPos + i < cellInfo.length && iDPos + i >= 0 && jDPos + j < cellInfo.length && jDPos + j >= 0) {
+                    if (cellInfo[(int)iDPos + i][(int)jDPos + j].getIntractable() != null) {
+                        cellInfo[(int)iDPos + i][(int)jDPos + j].getIntractable().interact(gameResourceController);
                         return;
                     }
                 }
@@ -200,25 +190,16 @@ public class Player extends Creature {
         }
     }
 
-    public void teleport(int x, int y) {
-        this.x = x;
-        this.y = y;
-        this.iPos = x;
-        this.jPos = y;
-        roomI = x / roomSize;
-        roomJ = y / roomSize;
+    public void teleport(int iPos, int jPos) {
+        this.iDPos = iPos;
+        this.jDPos = jPos;
+
+        roomI = iPos / roomSize;
+        roomJ = jPos / roomSize;
     }
 
     public double getWeaponCD() {
         return weapon.getCD();
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
     }
 
     public String getName() {

@@ -6,6 +6,7 @@ import MazeGame.creature.Player;
 import MazeGame.effect.Effect;
 import MazeGame.graphic.AbilityCDGraphic;
 import MazeGame.graphic.Graphic;
+import javafx.scene.input.KeyCode;
 
 import javax.swing.*;
 import java.awt.event.*;
@@ -36,7 +37,7 @@ public class GameInitializer {
         gameResourceController.initCreatureSlot(200);
 
         // let resource center init player
-        gameResourceController.initPlayer(roomSize/3,roomSize/3);
+        gameResourceController.initPlayer(roomSize / 3, roomSize / 3);
 
         // let resource center init graphic
         gameResourceController.initGraphicSystem();
@@ -99,6 +100,9 @@ public class GameInitializer {
                     player.drop();
                 } else if (charA == 'e') {
                     player.interact();
+                } else if (charA == ' ') {
+                    gameResourceController.updateBorderCoordinate();
+                    gameResourceController.getGraphic().updateViewLocation();
                 }
             }
 
@@ -169,7 +173,7 @@ public class GameInitializer {
                     player.move("right");
                 }
             }
-        }, 0, 1000 / 35);
+        }, 0, 1000 / 40);
 
         gameResourceController.getPlayerShootingDriver().schedule(new TimerTask() {
             @Override

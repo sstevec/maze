@@ -40,7 +40,7 @@ public class MindControlGun extends Weapon {
     }
 
     @Override
-    protected void cast(int x, int y, int xDest, int yDest) {
+    protected void cast(double x, double y, double xDest, double yDest) {
         int size = controlList.size();
         for (int i = 0; i < size; i++) {
             if (controlList.get(i).getCurrentHealth() <= 0) {
@@ -51,7 +51,7 @@ public class MindControlGun extends Weapon {
         }
         for (Creature temp : controlList
         ) {
-            effects.add(new Explosion((int) (temp.getjPos() * cellWidth), (int) (temp.getiPos() * cellWidth), 25 + effectRadius * cellWidth, effectRadius, 100, breakable, user.getCreatures()));
+            effects.add(new Explosion((int) (temp.getjDPos() * cellWidth), (int) (temp.getiDPos() * cellWidth), 25 + effectRadius * cellWidth, effectRadius, 100, breakable, user.getCreatures()));
         }
     }
 
