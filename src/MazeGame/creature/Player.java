@@ -131,7 +131,7 @@ public class Player extends Creature {
                         if (fallenItem.getKind() == WEAPON_KIND) {
                             // it is a weapon
                             Weapon tempWeapon = null;
-                            if (weapon.getDamage() != 0) {
+                            if (!(weapon instanceof NoWeapon)) {
                                 // means player equipped with a weapon
                                 tempWeapon = weapon;
                             }

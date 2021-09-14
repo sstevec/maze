@@ -111,7 +111,7 @@ public abstract class Creature {
 
     public void addBullets(ArrayList<Bullet> bullets) {
         while (true) {
-            if (bullets.isEmpty()) {
+            if (bullets == null || bullets.isEmpty()) {
                 return;
             }
 
